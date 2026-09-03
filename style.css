@@ -82,6 +82,11 @@ h2{font-size:32px;margin:0 0 18px}
 .timeline li{padding:12px 0;border-bottom:1px dashed rgba(255,255,255,0.02)}
 
 .contact .email{color:var(--accent);text-decoration:none;font-weight:600}
+.social-links a{display:inline-flex;align-items:center;gap:5px;color:inherit;text-decoration:none;transition:color .2s}
+.social-links a:hover{color:var(--text)}
+.social-links svg{width:14px;height:14px;flex:0 0 14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.social-links .social-icon-fill{fill:currentColor;stroke:none}
+.social-separator{margin:0 3px}
 
 .lightbox{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:clamp(16px,4vw,56px);background:rgba(0,0,0,0.78);opacity:0;pointer-events:none;transition:opacity .22s;z-index:50}
 .lightbox[aria-hidden="false"]{opacity:1;pointer-events:auto}
