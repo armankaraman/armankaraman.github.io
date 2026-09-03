@@ -248,27 +248,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     const isMobile = window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
     heroVideo.muted = true;
     heroVideo.playsInline = true;
-    heroVideo.loop = true;
-
-    function ensurePlayback(){
-      if(isMobile && heroVideo.paused){
-        heroVideo.play().catch(()=>{});
-      }
-    }
-
-    // Mobile browsers may defer muted autoplay until the first user gesture.
-    if(isMobile){
-      ensurePlayback();
-      window.addEventListener('touchstart', ensurePlayback, {passive:true, once:true});
-      window.addEventListener('pointerdown', ensurePlayback, {passive:true, once:true});
-      window.addEventListener('scroll', ensurePlayback, {passive:true});
-      document.addEventListener('visibilitychange', ensurePlayback);
-    } else {
-      // Desktop keeps the hero paused and follows the scroll position.
-      heroVideo.pause();
-    }
+    heroVideo.loop = !isMobile;
+    heroVideo.pause();
     let duration = 0;
     let targetTime = 0;
+    let mobileSeekFrame = 0;
     const smoothingFactor = 0.12;
     const seekThreshold = 0.01;
 
@@ -291,18 +275,32 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(duration && duration !== Infinity && !isNaN(duration)) targetTime = p * duration;
     }
 
+    function syncMobileToScroll(){
+      if(!isMobile) return;
+      heroVideo.pause();
+      updateTarget();
+      if(!mobileSeekFrame){
+        mobileSeekFrame = requestAnimationFrame(()=>{
+          mobileSeekFrame = 0;
+          try{ heroVideo.currentTime = targetTime; }catch(e){}
+        });
+      }
+    }
+
     function rafLoop(){
-      const currentTime = heroVideo.currentTime || 0;
-      const difference = targetTime - currentTime;
-      if(Math.abs(difference) > seekThreshold){
-        const nextTime = currentTime + difference * smoothingFactor;
-        try{ heroVideo.currentTime = nextTime; }catch(e){}
+      if(!isMobile){
+        const currentTime = heroVideo.currentTime || 0;
+        const difference = targetTime - currentTime;
+        if(Math.abs(difference) > seekThreshold){
+          const nextTime = currentTime + difference * smoothingFactor;
+          try{ heroVideo.currentTime = nextTime; }catch(e){}
+        }
       }
       requestAnimationFrame(rafLoop);
     }
 
     // update on scroll/resize
-    window.addEventListener('scroll', updateTarget, {passive:true});
+    window.addEventListener('scroll', isMobile ? syncMobileToScroll : updateTarget, {passive:true});
     window.addEventListener('resize', updateTarget);
     // ensure initial update
     setTimeout(updateTarget, 100);
