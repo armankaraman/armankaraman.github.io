@@ -9,21 +9,82 @@ document.addEventListener('DOMContentLoaded',()=>{
   const lbLink = lightbox.querySelector('.lightbox-link');
   const closeBtn = lightbox.querySelector('.close');
   let previousOverflow = '';
+  const mediaExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.mp4', '.webm'];
+  const imageExtensions = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+  const resolvedProjects = new Map();
+
+  function testMedia(src, extension){
+    return new Promise(resolve=>{
+      const media = imageExtensions.has(extension) ? new Image() : document.createElement('video');
+      let settled = false;
+      const finish = exists=>{
+        if(settled) return;
+        settled = true;
+        resolve(exists);
+      };
+      media.onload = ()=>finish(true);
+      media.onloadedmetadata = ()=>finish(true);
+      media.onerror = ()=>finish(false);
+      media.src = src;
+      if(media.tagName === 'VIDEO') media.load();
+    });
+  }
+
+  async function resolveMedia(project){
+    for(const extension of mediaExtensions){
+      const src = `assets/${project.id}${extension}`;
+      if(await testMedia(src, extension)){
+        return { src, type: imageExtensions.has(extension) ? 'image' : 'video' };
+      }
+    }
+    return null;
+  }
 
   function renderProjects(){
     projectsGrid.innerHTML = projects.map(project=>{
-      const media = project.type === 'video'
-        ? `<video class="project-video" muted playsinline preload="metadata"><source src="${project.media}" type="video/mp4"></video>`
-        : `<img src="${project.media}" alt="${project.title}">`;
+      const resolvedMedia = resolvedProjects.get(project.id);
+      const media = resolvedMedia?.type === 'video'
+        ? `<video class="project-video" muted playsinline preload="metadata" src="${resolvedMedia.src}"></video>`
+        : resolvedMedia
+          ? `<img src="${resolvedMedia.src}" alt="${project.title}">`
+          : '';
       const category = project.category ? `<span class="visual-category">${project.category}</span>` : '';
       return `<article class="card" data-project-id="${project.id}"><div class="visual media-slot">${media}<div class="visual-title">${project.title}${category}</div></div></article>`;
     }).join('');
+    setupProjectInteractions();
+  }
+
+  function setupProjectInteractions(){
+    projectsGrid.querySelectorAll('.card').forEach(card=>{
+      const project = projects.find(item=>item.id === card.dataset.projectId);
+      const video = card.querySelector('video');
+      if(video){
+        card.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
+        card.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
+      }
+      card.addEventListener('click',()=>openLightbox(project));
+    });
+
+    const vids = document.querySelectorAll('video.project-video');
+    if('IntersectionObserver' in window){
+      const obs = new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          const video = entry.target;
+          if(entry.isIntersecting){ video.play().catch(()=>{}); }
+          else { video.pause(); }
+        });
+      },{threshold:0.5});
+      vids.forEach(video=>obs.observe(video));
+    }
   }
 
   function openLightbox(project){
-    lbMedia.innerHTML = project.type === 'video'
-      ? `<video controls autoplay playsinline><source src="${project.media}" type="video/mp4"></video>`
-      : `<img src="${project.media}" alt="${project.title}">`;
+    const media = resolvedProjects.get(project.id);
+    lbMedia.innerHTML = media?.type === 'video'
+      ? `<video controls autoplay playsinline src="${media.src}"></video>`
+      : media
+        ? `<img src="${media.src}" alt="${project.title}">`
+        : '';
     lbCategory.textContent = project.category;
     lbTitle.textContent = project.title;
     lbYear.textContent = project.year;
@@ -40,32 +101,13 @@ document.addEventListener('DOMContentLoaded',()=>{
     lbMedia.innerHTML='';
     document.body.style.overflow=previousOverflow;
   }
-  renderProjects();
-  projectsGrid.querySelectorAll('.card').forEach(card=>{
-    const project = projects.find(item=>item.id === card.dataset.projectId);
-    const video = card.querySelector('video');
-    if(video){
-      card.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
-      card.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
-    }
-    card.addEventListener('click',()=>openLightbox(project));
-  });
+  Promise.all(projects.map(async project=>{
+    resolvedProjects.set(project.id, await resolveMedia(project));
+  })).then(renderProjects);
   closeBtn.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && lightbox.getAttribute('aria-hidden') === 'false') closeLightbox(); });
 
-  // Lazy-play videos when visible on small screens
-  const vids = document.querySelectorAll('video.project-video');
-  if('IntersectionObserver' in window){
-    const obs = new IntersectionObserver(entries=>{
-      entries.forEach(entry=>{
-        const v = entry.target;
-        if(entry.isIntersecting){ v.play().catch(()=>{}); }
-        else { v.pause(); }
-      });
-    },{threshold:0.5});
-    vids.forEach(v=>obs.observe(v));
-  }
   // --- Scroll-scrub for hero video ---
   const hero = document.querySelector('.hero-full');
   const heroVideo = document.getElementById('heroVideo');
