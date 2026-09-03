@@ -64,6 +64,8 @@ h2{font-size:32px;margin:0 0 18px}
 .media-slot .visual-title{position:relative;z-index:1}
 .media-slot.media-missing img,.media-slot.media-missing video{display:none}
 .character-grid{margin-top:28px}
+.three-d-card{min-height:0;aspect-ratio:1}
+.three-d-card .media-slot{min-height:0}
 .three-d-preview{background:linear-gradient(135deg,#26343a,#101417);}
 .three-d-badge{position:absolute;top:28px;left:28px;display:grid;place-items:center;width:72px;height:72px;border:1px solid rgba(126,232,255,.5);border-radius:50%;color:var(--accent);font-size:20px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,.2)}
 .visual-title{color:var(--text);font-size:28px;font-weight:700;background:rgba(0,0,0,0.25);padding:10px 14px;border-radius:10px}

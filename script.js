@@ -87,7 +87,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   async function loadSketchfabPreview(project,index){
     const preview = threeDGrid.querySelector(`[data-sketchfab-preview="${index}"]`);
-    if(!preview) return;
+    if(!preview || !project.sketchfab) return;
     try{
       const response = await fetch(`https://sketchfab.com/oembed?url=${encodeURIComponent(project.sketchfab)}&format=json`);
       if(!response.ok) return;
