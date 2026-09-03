@@ -74,7 +74,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     let targetTime = 0;
     let rafId = null;
 
-    function onMetadata(){ duration = heroVideo.duration || 0; }
+    function onMetadata(){
+      duration = heroVideo.duration || 0;
+      updateTarget();
+    }
     heroVideo.addEventListener('loadedmetadata', onMetadata);
     // if metadata already loaded
     if(heroVideo.readyState >= 1) onMetadata();
