@@ -38,26 +38,7 @@
     <section id="work" class="section">
       <div class="container">
         <h2>Selected Work</h2>
-        <div class="grid large" id="projects">
-          <article class="card" data-type="image" data-title="project01.jpg">
-            <div class="visual media-slot"><img src="assets/project01.jpg" alt="project01.jpg"><div class="visual-title">project01.jpg</div></div>
-          </article>
-          <article class="card" data-type="image" data-title="project02.jpg">
-            <div class="visual media-slot"><img src="assets/project02.jpg" alt="project02.jpg"><div class="visual-title">project02.jpg</div></div>
-          </article>
-          <article class="card" data-type="image" data-title="project03.jpg">
-            <div class="visual media-slot"><img src="assets/project03.jpg" alt="project03.jpg"><div class="visual-title">project03.jpg</div></div>
-          </article>
-          <article class="card" data-type="image" data-title="project04.jpg">
-            <div class="visual media-slot"><img src="assets/project04.jpg" alt="project04.jpg"><div class="visual-title">project04.jpg</div></div>
-          </article>
-          <article class="card" data-type="video" data-title="project05.mp4">
-            <div class="visual media-slot"><video class="project-video" muted playsinline preload="metadata"><source src="assets/project05.mp4" type="video/mp4"></video><div class="visual-title">project05.mp4</div></div>
-          </article>
-          <article class="card" data-type="video" data-title="project06.mp4">
-            <div class="visual media-slot"><video class="project-video" muted playsinline preload="metadata"><source src="assets/project06.mp4" type="video/mp4"></video><div class="visual-title">project06.mp4</div></div>
-          </article>
-        </div>
+        <div class="grid large" id="projects"></div>
       </div>
     </section>
 
@@ -126,9 +107,19 @@
 
   <div id="lightbox" class="lightbox" aria-hidden="true">
     <button class="close" aria-label="Close">✕</button>
-    <div class="lightbox-content"></div>
+    <div class="lightbox-content">
+      <div class="lightbox-media"></div>
+      <aside class="lightbox-info">
+        <p class="lightbox-category"></p>
+        <h2 class="lightbox-title"></h2>
+        <p class="lightbox-year"></p>
+        <p class="lightbox-description"></p>
+        <a class="lightbox-link" target="_blank" rel="noopener">View project</a>
+      </aside>
+    </div>
   </div>
 
+  <script src="projects.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

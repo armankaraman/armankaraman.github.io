@@ -1,69 +1,57 @@
 document.addEventListener('DOMContentLoaded',()=>{
-  const projects = document.getElementById('projects');
+  const projectsGrid = document.getElementById('projects');
   const lightbox = document.getElementById('lightbox');
-  const lbContent = lightbox.querySelector('.lightbox-content');
+  const lbMedia = lightbox.querySelector('.lightbox-media');
+  const lbCategory = lightbox.querySelector('.lightbox-category');
+  const lbTitle = lightbox.querySelector('.lightbox-title');
+  const lbYear = lightbox.querySelector('.lightbox-year');
+  const lbDescription = lightbox.querySelector('.lightbox-description');
+  const lbLink = lightbox.querySelector('.lightbox-link');
   const closeBtn = lightbox.querySelector('.close');
+  let previousOverflow = '';
 
-  // Handle visual-first cards: if a video/img exists inside, use it; otherwise clone the visual container.
-  document.querySelectorAll('.card').forEach(card=>{
-    const video = card.querySelector('video');
-    const img = card.querySelector('img');
-    const markMissing = element => element.closest('.media-slot').classList.add('media-missing');
-    if(img){
-      img.addEventListener('error',()=>markMissing(img));
-      if(img.complete && img.naturalWidth === 0) markMissing(img);
-    }
-    if(video){
-      video.addEventListener('error',()=>markMissing(video));
-      const source = video.querySelector('source');
-      if(source) source.addEventListener('error',()=>markMissing(video));
-      setTimeout(()=>{
-        if(video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) markMissing(video);
-      },100);
-    }
-    // hover behavior for existing videos
-    if(video){
-      card.addEventListener('mouseenter',()=>{ video.play().catch(()=>{}); });
-      card.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
-    }
+  function renderProjects(){
+    projectsGrid.innerHTML = projects.map(project=>{
+      const media = project.type === 'video'
+        ? `<video class="project-video" muted playsinline preload="metadata"><source src="${project.media}" type="video/mp4"></video>`
+        : `<img src="${project.media}" alt="${project.title}">`;
+      return `<article class="card" data-project-id="${project.id}"><div class="visual media-slot">${media}<div class="visual-title">${project.title}</div></div></article>`;
+    }).join('');
+  }
 
-    card.addEventListener('click', ()=>{
-      const title = card.dataset.title || '';
-      if(video){
-        openLightbox(video.cloneNode(true), title);
-      } else if(img){
-        openLightbox(img.cloneNode(true), title);
-      } else {
-        // clone the visual block for a clean lightbox view
-        const visual = card.querySelector('.visual');
-        if(visual){
-          openLightbox(visual.cloneNode(true), title);
-        }
-      }
-    });
-  });
-
-  function openLightbox(node, title){
-    // clear
-    lbContent.innerHTML = '';
-    // prepare node
-    node.removeAttribute('width'); node.removeAttribute('height');
-    if(node.tagName.toLowerCase()==='video'){
-      node.controls = true; node.autoplay = true; node.muted = false; node.loop = false; node.style.maxHeight = '80vh';
-    }
-    lbContent.appendChild(node);
+  function openLightbox(project){
+    lbMedia.innerHTML = project.type === 'video'
+      ? `<video controls autoplay playsinline><source src="${project.media}" type="video/mp4"></video>`
+      : `<img src="${project.media}" alt="${project.title}">`;
+    lbCategory.textContent = project.category;
+    lbTitle.textContent = project.title;
+    lbYear.textContent = project.year;
+    lbDescription.textContent = project.description;
+    lbLink.href = project.link || '#';
+    lbLink.classList.toggle('is-visible', Boolean(project.link));
+    previousOverflow = document.body.style.overflow;
     lightbox.setAttribute('aria-hidden','false');
     document.body.style.overflow='hidden';
   }
 
   function closeLightbox(){
     lightbox.setAttribute('aria-hidden','true');
-    lbContent.innerHTML='';
-    document.body.style.overflow='auto';
+    lbMedia.innerHTML='';
+    document.body.style.overflow=previousOverflow;
   }
+  renderProjects();
+  projectsGrid.querySelectorAll('.card').forEach(card=>{
+    const project = projects.find(item=>item.id === card.dataset.projectId);
+    const video = card.querySelector('video');
+    if(video){
+      card.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
+      card.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
+    }
+    card.addEventListener('click',()=>openLightbox(project));
+  });
   closeBtn.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
-  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape') closeLightbox(); });
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && lightbox.getAttribute('aria-hidden') === 'false') closeLightbox(); });
 
   // Lazy-play videos when visible on small screens
   const vids = document.querySelectorAll('video.project-video');
