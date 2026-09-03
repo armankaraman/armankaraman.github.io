@@ -254,6 +254,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     heroVideo.autoplay = false;
     heroVideo.loop = false;
     heroVideo.preload = 'auto';
+    heroVideo.setAttribute('muted', '');
+    heroVideo.setAttribute('playsinline', '');
+    heroVideo.setAttribute('webkit-playsinline', '');
     heroVideo.removeAttribute('autoplay');
     heroVideo.removeAttribute('loop');
     let hasValidFrame = false;
@@ -287,13 +290,18 @@ document.addEventListener('DOMContentLoaded',()=>{
       targetProgress = getScrollProgress();
     }
 
-    function warmUpTouchVideo(){
-      if(!isTouchDevice || touchVideoUnlocked || isWarmingUp || !heroVideo.paused) return;
+    function warmUpTouchVideo(forceRetry = false){
+      if(!isTouchDevice || touchVideoUnlocked || (forceRetry !== true && isWarmingUp) || !heroVideo.paused) return;
       isWarmingUp = true;
+      heroVideo.muted = true;
       const playAttempt = heroVideo.play();
       if(playAttempt && typeof playAttempt.catch === 'function'){
         playAttempt.catch(()=>{ isWarmingUp = false; });
       }
+    }
+
+    function unlockOnFirstTouch(){
+      warmUpTouchVideo(true);
     }
 
     function onMetadata(){
@@ -316,6 +324,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         touchVideoUnlocked = true;
         scrubReady = true;
         showValidFrame();
+        document.removeEventListener('touchstart', unlockOnFirstTouch);
       }
     }
 
@@ -350,6 +359,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     heroVideo.addEventListener('canplay', warmUpTouchVideo);
     heroVideo.addEventListener('playing', onPlaying);
     heroVideo.addEventListener('seeked', showValidFrame);
+    if(isTouchDevice) document.addEventListener('touchstart', unlockOnFirstTouch, {passive:true});
     window.addEventListener('scroll', updateTargetProgress, {passive:true});
     window.addEventListener('resize', updateTargetProgress);
     if(heroVideo.readyState >= 1) onMetadata();
