@@ -8,6 +8,19 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.querySelectorAll('.card').forEach(card=>{
     const video = card.querySelector('video');
     const img = card.querySelector('img');
+    const markMissing = element => element.closest('.media-slot').classList.add('media-missing');
+    if(img){
+      img.addEventListener('error',()=>markMissing(img));
+      if(img.complete && img.naturalWidth === 0) markMissing(img);
+    }
+    if(video){
+      video.addEventListener('error',()=>markMissing(video));
+      const source = video.querySelector('source');
+      if(source) source.addEventListener('error',()=>markMissing(video));
+      setTimeout(()=>{
+        if(video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) markMissing(video);
+      },100);
+    }
     // hover behavior for existing videos
     if(video){
       card.addEventListener('mouseenter',()=>{ video.play().catch(()=>{}); });
