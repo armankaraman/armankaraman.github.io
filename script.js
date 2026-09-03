@@ -256,11 +256,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     const smoothingFactor = 0.12;
     const seekThreshold = 0.01;
     let lastSeekTime = -Infinity;
-    let lastObservedTime = 0;
-    let seekStartedAt = 0;
+    let scrubTime = 0;
+    let lastAppliedScrubTime = -Infinity;
 
     function onMetadata(){
       duration = heroVideo.duration || 0;
+      scrubTime = heroVideo.currentTime || 0;
       updateTarget();
       heroWrap.classList.add('video-ready');
     }
@@ -281,24 +282,29 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
 
     function rafLoop(){
-      const currentTime = heroVideo.currentTime || 0;
-      const difference = targetTime - currentTime;
       const now = performance.now();
-      if(duration && Math.abs(difference) > seekThreshold && (!isMobile || now - lastSeekTime >= 33)){
-        const nextTime = currentTime + difference * smoothingFactor;
-        try{
-          heroVideo.currentTime = nextTime;
-          lastSeekTime = now;
-          seekStartedAt = now;
-        }catch(e){
-          heroWrap.classList.remove('video-ready');
+      if(isMobile){
+        const difference = targetTime - scrubTime;
+        if(duration && Math.abs(difference) > seekThreshold){
+          scrubTime += difference * smoothingFactor;
+          if(now - lastSeekTime >= 33 && Math.abs(scrubTime - lastAppliedScrubTime) >= 0.02){
+            try{
+              heroVideo.currentTime = scrubTime;
+              lastSeekTime = now;
+              lastAppliedScrubTime = scrubTime;
+            }catch(e){
+              heroWrap.classList.remove('video-ready');
+            }
+          }
+        }
+      } else {
+        const currentTime = heroVideo.currentTime || 0;
+        const difference = targetTime - currentTime;
+        if(duration && Math.abs(difference) > seekThreshold){
+          try{ heroVideo.currentTime = currentTime + difference * smoothingFactor; }
+          catch(e){ heroWrap.classList.remove('video-ready'); }
         }
       }
-      if(isMobile && seekStartedAt && now - seekStartedAt > 500 && Math.abs(heroVideo.currentTime - lastObservedTime) < seekThreshold){
-        heroWrap.classList.remove('video-ready');
-        seekStartedAt = 0;
-      }
-      lastObservedTime = heroVideo.currentTime;
       requestAnimationFrame(rafLoop);
     }
 
