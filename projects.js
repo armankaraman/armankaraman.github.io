@@ -1,14 +1,17 @@
 const projects = [
   {
     id: "project01",
+    media: "assets/project01.jpg",
     title: "Project One",
     category: "Motion Design",
     year: "2026",
     description: "Replace this text with project description.",
-    link: ""
+    link: "",
+    gallery: []
   },
   {
     id: "project02",
+    media: "assets/project02.jpg",
     title: "Project Two",
     category: "3D",
     year: "2026",
@@ -17,6 +20,7 @@ const projects = [
   },
   {
     id: "project03",
+    media: "assets/project03.jpg",
     title: "Project Three",
     category: "AI Visuals",
     year: "2026",
@@ -25,6 +29,7 @@ const projects = [
   },
   {
     id: "project04",
+    media: "assets/project04.jpg",
     title: "Project Four",
     category: "Commercial",
     year: "2026",
@@ -33,6 +38,7 @@ const projects = [
   },
   {
     id: "project05",
+    media: "assets/project05.mp4",
     title: "Project Five",
     category: "Motion Design",
     year: "2026",
@@ -41,6 +47,7 @@ const projects = [
   },
   {
     id: "project06",
+    media: "assets/project06.mp4",
     title: "Project Six",
     category: "Motion Design",
     year: "2026",
@@ -49,13 +56,6 @@ const projects = [
   }
 ];
 
-const threeDProjects = [
-  {
-    id: "3d01",
-    title: "Conor McGregor",
-    category: "3D",
-    year: "2026",
-    description: "Interactive 3D character model.",
-    sketchfabUrl: "https://sketchfab.com/models/fbd6519f778a4599929eda7d0ac42fb2/embed"
-  }
-];
+document.write('<script src="3d-projects.js"><\/script>');
+document.write('<script src="motion-projects.js"><\/script>');
+
