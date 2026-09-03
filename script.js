@@ -245,30 +245,42 @@ document.addEventListener('DOMContentLoaded',()=>{
   const hero = document.querySelector('.hero-full');
   const heroVideo = document.getElementById('heroVideo');
   if(hero && heroVideo){
-    const isMobile = window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
     const heroWrap = hero.querySelector('.hero-video-wrap');
     heroVideo.muted = true;
     heroVideo.playsInline = true;
-    heroVideo.loop = !isMobile;
+    heroVideo.autoplay = false;
+    heroVideo.loop = false;
     heroVideo.pause();
     let duration = 0;
     let targetTime = 0;
     const smoothingFactor = 0.12;
-    const seekThreshold = 0.01;
+    const seekThreshold = 0.015;
+    const minimumSeekInterval = 40;
     let lastSeekTime = -Infinity;
-    let scrubTime = 0;
-    let lastAppliedScrubTime = -Infinity;
+    let interpolatedTime = 0;
+    let lastAppliedTime = -Infinity;
+    let hasValidFrame = false;
 
     function onMetadata(){
       duration = heroVideo.duration || 0;
-      scrubTime = heroVideo.currentTime || 0;
+      interpolatedTime = heroVideo.currentTime || 0;
       updateTarget();
+    }
+
+    function showValidFrame(){
+      hasValidFrame = true;
       heroWrap.classList.add('video-ready');
     }
+
     heroVideo.addEventListener('loadedmetadata', onMetadata);
-    heroVideo.addEventListener('error', ()=>heroWrap.classList.remove('video-ready'));
+    heroVideo.addEventListener('loadeddata', showValidFrame);
+    heroVideo.addEventListener('seeked', showValidFrame);
+    heroVideo.addEventListener('error', ()=>{
+      if(!hasValidFrame) heroWrap.classList.remove('video-ready');
+    });
     // if metadata already loaded
     if(heroVideo.readyState >= 1) onMetadata();
+    if(heroVideo.readyState >= 2) showValidFrame();
 
     function getScrollProgress(){
       const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
@@ -283,26 +295,18 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     function rafLoop(){
       const now = performance.now();
-      if(isMobile){
-        const difference = targetTime - scrubTime;
-        if(duration && Math.abs(difference) > seekThreshold){
-          scrubTime += difference * smoothingFactor;
-          if(now - lastSeekTime >= 33 && Math.abs(scrubTime - lastAppliedScrubTime) >= 0.02){
-            try{
-              heroVideo.currentTime = scrubTime;
-              lastSeekTime = now;
-              lastAppliedScrubTime = scrubTime;
-            }catch(e){
-              heroWrap.classList.remove('video-ready');
-            }
+      const difference = targetTime - interpolatedTime;
+      if(duration && Math.abs(difference) > seekThreshold){
+        interpolatedTime += difference * smoothingFactor;
+        const canSeek = !heroVideo.seeking && now - lastSeekTime >= minimumSeekInterval;
+        if(canSeek && Math.abs(interpolatedTime - lastAppliedTime) >= seekThreshold){
+          try{
+            heroVideo.currentTime = Math.min(duration, Math.max(0, interpolatedTime));
+            lastSeekTime = now;
+            lastAppliedTime = interpolatedTime;
+          }catch(e){
+            if(!hasValidFrame) heroWrap.classList.remove('video-ready');
           }
-        }
-      } else {
-        const currentTime = heroVideo.currentTime || 0;
-        const difference = targetTime - currentTime;
-        if(duration && Math.abs(difference) > seekThreshold){
-          try{ heroVideo.currentTime = currentTime + difference * smoothingFactor; }
-          catch(e){ heroWrap.classList.remove('video-ready'); }
         }
       }
       requestAnimationFrame(rafLoop);
