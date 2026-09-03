@@ -245,8 +245,28 @@ document.addEventListener('DOMContentLoaded',()=>{
   const hero = document.querySelector('.hero-full');
   const heroVideo = document.getElementById('heroVideo');
   if(hero && heroVideo){
-    // ensure video doesn't autoplay
-    heroVideo.pause();
+    const isMobile = window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
+    heroVideo.muted = true;
+    heroVideo.playsInline = true;
+    heroVideo.loop = true;
+
+    function ensurePlayback(){
+      if(isMobile && heroVideo.paused){
+        heroVideo.play().catch(()=>{});
+      }
+    }
+
+    // Mobile browsers may defer muted autoplay until the first user gesture.
+    if(isMobile){
+      ensurePlayback();
+      window.addEventListener('touchstart', ensurePlayback, {passive:true, once:true});
+      window.addEventListener('pointerdown', ensurePlayback, {passive:true, once:true});
+      window.addEventListener('scroll', ensurePlayback, {passive:true});
+      document.addEventListener('visibilitychange', ensurePlayback);
+    } else {
+      // Desktop keeps the hero paused and follows the scroll position.
+      heroVideo.pause();
+    }
     let duration = 0;
     let targetTime = 0;
     const smoothingFactor = 0.12;
