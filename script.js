@@ -138,17 +138,24 @@ document.addEventListener('DOMContentLoaded',()=>{
       }
       card.addEventListener('click',()=>openLightbox(project));
     });
+  }
 
-    const vids = document.querySelectorAll('video.project-video');
+  function setupVideoVisibility(){
+    const vids = document.querySelectorAll('video.project-video, video.motion-project-video');
     if('IntersectionObserver' in window){
       const obs = new IntersectionObserver(entries=>{
         entries.forEach(entry=>{
           const video = entry.target;
-          if(entry.isIntersecting){ video.play().catch(()=>{}); }
-          else { video.pause(); }
+          if(entry.isIntersecting){
+            video.play().catch(()=>{});
+          } else {
+            video.pause();
+          }
         });
-      },{threshold:0.5});
+      },{threshold:0.15});
       vids.forEach(video=>obs.observe(video));
+    } else {
+      vids.forEach(video=>video.play().catch(()=>{}));
     }
   }
 
@@ -235,6 +242,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderProjects();
     renderThreeDProjects();
     renderMotionProjects();
+    setupVideoVisibility();
   }
   initializePortfolio();
   closeBtn.addEventListener('click', closeLightbox);
@@ -261,6 +269,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       updateTarget();
     }
     heroVideo.addEventListener('loadedmetadata', onMetadata);
+    heroVideo.addEventListener('loadeddata', onMetadata);
+    heroVideo.addEventListener('durationchange', onMetadata);
     // if metadata already loaded
     if(heroVideo.readyState >= 1) onMetadata();
 
@@ -301,7 +311,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     // update on scroll/resize
     window.addEventListener('scroll', isMobile ? syncMobileToScroll : updateTarget, {passive:true});
-    window.addEventListener('resize', updateTarget);
+    window.addEventListener('resize', ()=>{
+      updateTarget();
+      if(isMobile) syncMobileToScroll();
+    });
     // ensure initial update
     setTimeout(updateTarget, 100);
     requestAnimationFrame(rafLoop);
