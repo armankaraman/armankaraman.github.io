@@ -29,7 +29,10 @@ const projects = [
     year: "2026",
     description: "Replace this text with project description.",
     link: "",
-    gallery: []
+    gallery: [
+      "assets/project03-02.mp4",
+      "assets/project03-03.mp4"
+    ]
   },
   {
     id: "project04",
