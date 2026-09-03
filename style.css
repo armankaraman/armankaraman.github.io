@@ -30,9 +30,10 @@ main{position:relative;z-index:1}
 
 .hero{padding:0}
 .hero-full{position:relative;min-height:100vh;display:block}
-.hero-video-wrap{position:fixed;inset:0;height:100vh;width:100vw;overflow:hidden;display:block;z-index:-2;pointer-events:none;background:#18252a url('assets/project01.jpg') center/cover no-repeat}
+.hero-video-wrap{position:fixed;inset:0;height:100vh;width:100vw;overflow:hidden;display:block;z-index:0;pointer-events:none;background:#0b0b0c url('assets/hero-poster.jpg') center/cover no-repeat}
 .hero-video-wrap::after{content:"";position:absolute;inset:0;background:rgba(0,0,0,0.2);z-index:1;pointer-events:none}
-.hero-video-wrap video{width:100vw;height:100vh;object-fit:cover;display:block}
+.hero-video-wrap video{width:100vw;height:100vh;object-fit:cover;display:block;opacity:0;transition:opacity .2s}
+.hero-video-wrap.video-ready video{opacity:1}
 .hero-inner{position:relative;z-index:1;width:100%;padding-top:20vh;pointer-events:none}
 .hero-inner a{pointer-events:auto}
 .hero-title{max-width:100%;font-size:clamp(2.35rem, 9vw, 6.875rem);line-height:0.95;margin:0;font-weight:800;letter-spacing:-0.02em;overflow-wrap:break-word}

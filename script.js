@@ -138,24 +138,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       }
       card.addEventListener('click',()=>openLightbox(project));
     });
-  }
 
-  function setupVideoVisibility(){
-    const vids = document.querySelectorAll('video.project-video, video.motion-project-video');
+    const vids = document.querySelectorAll('video.project-video');
     if('IntersectionObserver' in window){
       const obs = new IntersectionObserver(entries=>{
         entries.forEach(entry=>{
           const video = entry.target;
-          if(entry.isIntersecting){
-            video.play().catch(()=>{});
-          } else {
-            video.pause();
-          }
+          if(entry.isIntersecting){ video.play().catch(()=>{}); }
+          else { video.pause(); }
         });
-      },{threshold:0.15});
+      },{threshold:0.5});
       vids.forEach(video=>obs.observe(video));
-    } else {
-      vids.forEach(video=>video.play().catch(()=>{}));
     }
   }
 
@@ -242,7 +235,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     renderProjects();
     renderThreeDProjects();
     renderMotionProjects();
-    setupVideoVisibility();
   }
   initializePortfolio();
   closeBtn.addEventListener('click', closeLightbox);
@@ -254,23 +246,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   const heroVideo = document.getElementById('heroVideo');
   if(hero && heroVideo){
     const isMobile = window.matchMedia('(max-width: 640px), (pointer: coarse)').matches;
+    const heroWrap = hero.querySelector('.hero-video-wrap');
     heroVideo.muted = true;
     heroVideo.playsInline = true;
     heroVideo.loop = !isMobile;
     heroVideo.pause();
     let duration = 0;
     let targetTime = 0;
-    let mobileSeekFrame = 0;
     const smoothingFactor = 0.12;
     const seekThreshold = 0.01;
+    let lastSeekTime = -Infinity;
+    let lastObservedTime = 0;
+    let seekStartedAt = 0;
 
     function onMetadata(){
       duration = heroVideo.duration || 0;
       updateTarget();
+      heroWrap.classList.add('video-ready');
     }
     heroVideo.addEventListener('loadedmetadata', onMetadata);
-    heroVideo.addEventListener('loadeddata', onMetadata);
-    heroVideo.addEventListener('durationchange', onMetadata);
+    heroVideo.addEventListener('error', ()=>heroWrap.classList.remove('video-ready'));
     // if metadata already loaded
     if(heroVideo.readyState >= 1) onMetadata();
 
@@ -285,36 +280,31 @@ document.addEventListener('DOMContentLoaded',()=>{
       if(duration && duration !== Infinity && !isNaN(duration)) targetTime = p * duration;
     }
 
-    function syncMobileToScroll(){
-      if(!isMobile) return;
-      heroVideo.pause();
-      updateTarget();
-      if(!mobileSeekFrame){
-        mobileSeekFrame = requestAnimationFrame(()=>{
-          mobileSeekFrame = 0;
-          try{ heroVideo.currentTime = targetTime; }catch(e){}
-        });
-      }
-    }
-
     function rafLoop(){
-      if(!isMobile){
-        const currentTime = heroVideo.currentTime || 0;
-        const difference = targetTime - currentTime;
-        if(Math.abs(difference) > seekThreshold){
-          const nextTime = currentTime + difference * smoothingFactor;
-          try{ heroVideo.currentTime = nextTime; }catch(e){}
+      const currentTime = heroVideo.currentTime || 0;
+      const difference = targetTime - currentTime;
+      const now = performance.now();
+      if(duration && Math.abs(difference) > seekThreshold && (!isMobile || now - lastSeekTime >= 33)){
+        const nextTime = currentTime + difference * smoothingFactor;
+        try{
+          heroVideo.currentTime = nextTime;
+          lastSeekTime = now;
+          seekStartedAt = now;
+        }catch(e){
+          heroWrap.classList.remove('video-ready');
         }
       }
+      if(isMobile && seekStartedAt && now - seekStartedAt > 500 && Math.abs(heroVideo.currentTime - lastObservedTime) < seekThreshold){
+        heroWrap.classList.remove('video-ready');
+        seekStartedAt = 0;
+      }
+      lastObservedTime = heroVideo.currentTime;
       requestAnimationFrame(rafLoop);
     }
 
     // update on scroll/resize
-    window.addEventListener('scroll', isMobile ? syncMobileToScroll : updateTarget, {passive:true});
-    window.addEventListener('resize', ()=>{
-      updateTarget();
-      if(isMobile) syncMobileToScroll();
-    });
+    window.addEventListener('scroll', updateTarget, {passive:true});
+    window.addEventListener('resize', updateTarget);
     // ensure initial update
     setTimeout(updateTarget, 100);
     requestAnimationFrame(rafLoop);
