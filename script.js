@@ -37,8 +37,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   async function resolveMedia(project){
     if(project.media){
+      const fileName = project.media.split('/').pop().toLowerCase();
       const extension = project.media.slice(project.media.lastIndexOf('.')).toLowerCase();
-      if(mediaExtensions.includes(extension)){
+      if(fileName === `${project.id}${extension}` && mediaExtensions.includes(extension)){
         return {src:project.media,type:imageExtensions.has(extension) ? 'image' : 'video'};
       }
       return null;
@@ -55,8 +56,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   async function resolveGallery(project){
     if(!Array.isArray(project.gallery)) return [];
     const resolved = project.gallery.map(src=>{
+      const fileName = src.split('/').pop().toLowerCase();
       const extension = src.slice(src.lastIndexOf('.')).toLowerCase();
-      if(!mediaExtensions.includes(extension)) return null;
+      if(!fileName.startsWith(`${project.id}-`) || !mediaExtensions.includes(extension)) return null;
       return {src, type:imageExtensions.has(extension) ? 'image' : 'video'};
     });
     return resolved.filter(Boolean);

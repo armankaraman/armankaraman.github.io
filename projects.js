@@ -30,8 +30,8 @@ const projects = [
     description: "Replace this text with project description.",
     link: "",
     gallery: [
-      "assets/project03-02.mp4",
-      "assets/project03-03.mp4"
+      "assets/project03-2.mp4",
+      "assets/project03-3.mp4"
     ]
   },
   {
