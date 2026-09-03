@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded',()=>{
   const projectsGrid = document.getElementById('projects');
+  const threeDGrid = document.getElementById('three-d-projects');
   const lightbox = document.getElementById('lightbox');
   const lbMedia = lightbox.querySelector('.lightbox-media');
   const lbCategory = lightbox.querySelector('.lightbox-category');
@@ -54,6 +55,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     setupProjectInteractions();
   }
 
+  function renderThreeDProjects(){
+    threeDGrid.innerHTML = threeDProjects.map(project=>`<article class="card three-d-card" data-three-d-project-id="${project.id}"><div class="visual media-slot three-d-preview"><div class="three-d-badge" aria-hidden="true">3D</div><div class="visual-title">${project.title}<span class="visual-category">${project.category}</span></div></div></article>`).join('');
+    threeDGrid.querySelectorAll('.card').forEach(card=>{
+      const project = threeDProjects.find(item=>item.id === card.dataset.threeDProjectId);
+      card.addEventListener('click',()=>openLightbox(project));
+    });
+  }
+
   function setupProjectInteractions(){
     projectsGrid.querySelectorAll('.card').forEach(card=>{
       const project = projects.find(item=>item.id === card.dataset.projectId);
@@ -80,7 +89,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   function openLightbox(project){
     const media = resolvedProjects.get(project.id);
-    lbMedia.innerHTML = media?.type === 'video'
+    lbMedia.innerHTML = project.sketchfabUrl
+      ? `<iframe title="${project.title}" src="${project.sketchfabUrl}" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>`
+      : media?.type === 'video'
       ? `<video controls autoplay playsinline src="${media.src}"></video>`
       : media
         ? `<img src="${media.src}" alt="${project.title}">`
@@ -103,7 +114,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   Promise.all(projects.map(async project=>{
     resolvedProjects.set(project.id, await resolveMedia(project));
-  })).then(renderProjects);
+  })).then(()=>{
+    renderProjects();
+    renderThreeDProjects();
+  });
   closeBtn.addEventListener('click', closeLightbox);
   lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && lightbox.getAttribute('aria-hidden') === 'false') closeLightbox(); });

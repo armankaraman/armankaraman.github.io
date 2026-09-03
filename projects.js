@@ -48,3 +48,14 @@ const projects = [
     link: ""
   }
 ];
+
+const threeDProjects = [
+  {
+    id: "3d01",
+    title: "Conor McGregor",
+    category: "3D",
+    year: "2026",
+    description: "Interactive 3D character model.",
+    sketchfabUrl: "https://sketchfab.com/models/fbd6519f778a4599929eda7d0ac42fb2/embed"
+  }
+];
