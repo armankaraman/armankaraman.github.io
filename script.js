@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   async function resolveMedia(project){
     if(project.media){
       const extension = project.media.slice(project.media.lastIndexOf('.')).toLowerCase();
-      if(mediaExtensions.includes(extension) && await testMedia(project.media, extension)){
+      if(mediaExtensions.includes(extension)){
         return {src:project.media,type:imageExtensions.has(extension) ? 'image' : 'video'};
       }
       return null;
@@ -66,9 +66,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     projectsGrid.innerHTML = projects.map(project=>{
       const resolvedMedia = resolvedProjects.get(project.id);
       const media = resolvedMedia?.type === 'video'
-        ? `<video class="project-video" muted playsinline preload="metadata" src="${resolvedMedia.src}"></video>`
+        ? `<video class="project-video" muted playsinline preload="none" src="${resolvedMedia.src}"></video>`
         : resolvedMedia
-          ? `<img src="${resolvedMedia.src}" alt="${project.title}">`
+          ? `<img src="${resolvedMedia.src}" alt="${project.title}" loading="lazy">`
           : '';
       const category = project.category ? `<span class="visual-category">${project.category}</span>` : '';
       return `<article class="card" data-project-id="${project.id}"><div class="visual media-slot">${media}<div class="visual-title">${project.title}${category}</div></div></article>`;
@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded',()=>{
         const image = document.createElement('img');
         image.src = data.thumbnail_url;
         image.alt = project.title;
+        image.loading = 'lazy';
         preview.prepend(image);
       }
     }catch(error){
@@ -108,9 +109,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     motionGrid.innerHTML = motionProjects.map((project,index)=>{
       const resolvedMedia = resolvedMotionProjects.get(index);
       const media = resolvedMedia?.type === 'video'
-        ? `<video class="motion-project-video" muted playsinline preload="metadata" src="${resolvedMedia.src}"></video>`
+        ? `<video class="motion-project-video" muted playsinline preload="none" src="${resolvedMedia.src}"></video>`
         : resolvedMedia
-          ? `<img src="${resolvedMedia.src}" alt="${project.title}">`
+          ? `<img src="${resolvedMedia.src}" alt="${project.title}" loading="lazy">`
           : '';
       return `<article class="card" data-motion-project-index="${index}"><div class="visual media-slot">${media}<div class="visual-title">${project.title}</div></div></article>`;
     }).join('');
@@ -151,7 +152,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   function mediaMarkup(media, title, controls = false){
     if(media.type === 'video'){
-      return `<video ${controls ? 'controls ' : ''}muted playsinline src="${media.src}"></video>`;
+      return `<video ${controls ? 'controls ' : ''}muted playsinline preload="none" src="${media.src}"></video>`;
     }
     return `<img src="${media.src}" alt="${title}">`;
   }
@@ -206,6 +207,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   function closeLightbox(){
     lightbox.setAttribute('aria-hidden','true');
+    lbMedia.querySelectorAll('video').forEach(video=>video.pause());
     lbMedia.innerHTML='';
     document.body.style.overflow=previousOverflow;
   }
@@ -219,7 +221,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     await Promise.all(motionProjects.map(async (project,index)=>{
       const extension = project.media.slice(project.media.lastIndexOf('.')).toLowerCase();
       if(![...mediaExtensions].includes(extension)) return;
-      if(await testMedia(project.media, extension)) resolvedMotionProjects.set(index,{src:project.media,type:imageExtensions.has(extension) ? 'image' : 'video'});
+      resolvedMotionProjects.set(index,{src:project.media,type:imageExtensions.has(extension) ? 'image' : 'video'});
     }));
     renderProjects();
     renderThreeDProjects();
