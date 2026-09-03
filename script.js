@@ -251,7 +251,22 @@ document.addEventListener('DOMContentLoaded',()=>{
       navigator.maxTouchPoints > 0;
     heroVideo.muted = true;
     heroVideo.playsInline = true;
+    heroVideo.autoplay = false;
+    heroVideo.loop = false;
+    heroVideo.preload = 'auto';
+    heroVideo.removeAttribute('autoplay');
+    heroVideo.removeAttribute('loop');
     let hasValidFrame = false;
+    let duration = 0;
+    let targetProgress = getScrollProgress();
+    let easedProgress = targetProgress;
+    let lastAppliedTime = -Infinity;
+    let lastSeekAt = -Infinity;
+    let scrubReady = false;
+    let isWarmingUp = false;
+    let touchVideoUnlocked = false;
+    const smoothingFactor = 0.1;
+    const minimumSeekInterval = isTouchDevice ? 100 : 80;
 
     function showValidFrame(){
       hasValidFrame = true;
@@ -268,84 +283,77 @@ document.addEventListener('DOMContentLoaded',()=>{
       return Math.min(Math.max(scrollY / Math.max(1, scrollRange), 0), 1);
     }
 
-    if(isTouchDevice){
-      heroVideo.autoplay = true;
-      heroVideo.loop = true;
-      heroVideo.setAttribute('autoplay', '');
-      heroVideo.setAttribute('loop', '');
+    function updateTargetProgress(){
+      targetProgress = getScrollProgress();
+    }
 
-      function tryMobilePlayback(){
-        if(heroVideo.readyState < 1) return;
-        const playAttempt = heroVideo.play();
-        if(playAttempt && typeof playAttempt.catch === 'function'){
-          playAttempt.catch(()=>{
-            if(!hasValidFrame) heroWrap.classList.remove('video-ready');
-          });
-        }
+    function warmUpTouchVideo(){
+      if(!isTouchDevice || touchVideoUnlocked || isWarmingUp || !heroVideo.paused) return;
+      isWarmingUp = true;
+      const playAttempt = heroVideo.play();
+      if(playAttempt && typeof playAttempt.catch === 'function'){
+        playAttempt.catch(()=>{ isWarmingUp = false; });
       }
+    }
 
-      heroVideo.addEventListener('playing', showValidFrame);
-      heroVideo.addEventListener('loadedmetadata', tryMobilePlayback);
-      heroVideo.addEventListener('canplay', tryMobilePlayback);
-      if(heroVideo.readyState >= 1) tryMobilePlayback();
-    } else {
-      heroVideo.autoplay = false;
-      heroVideo.loop = false;
-      heroVideo.removeAttribute('autoplay');
-      heroVideo.removeAttribute('loop');
-      heroVideo.pause();
+    function onMetadata(){
+      duration = Number.isFinite(heroVideo.duration) ? heroVideo.duration : 0;
+      updateTargetProgress();
+      easedProgress = duration ? (heroVideo.currentTime || 0) / duration : targetProgress;
+      warmUpTouchVideo();
+    }
 
-      let duration = 0;
-      let targetProgress = getScrollProgress();
-      let easedTime = 0;
-      let lastAppliedTime = -Infinity;
-      let lastSeekAt = -Infinity;
-      const smoothingFactor = 0.1;
-      const minimumSeekInterval = 100;
+    function onLoadedData(){
+      scrubReady = true;
+      showValidFrame();
+      warmUpTouchVideo();
+    }
 
-      function updateTargetProgress(){
-        targetProgress = getScrollProgress();
+    function onPlaying(){
+      if(isWarmingUp){
+        heroVideo.pause();
+        isWarmingUp = false;
+        touchVideoUnlocked = true;
+        scrubReady = true;
+        showValidFrame();
       }
+    }
 
-      function onMetadata(){
-        duration = Number.isFinite(heroVideo.duration) ? heroVideo.duration : 0;
-        easedTime = heroVideo.currentTime || 0;
-        updateTargetProgress();
-      }
+    function scrubLoop(now){
+      if(scrubReady && duration && heroVideo.paused){
+        const difference = targetProgress - easedProgress;
+        const progressThreshold = Math.max(0.001, 0.05 / duration);
 
-      function scrubLoop(now){
-        if(duration){
-          const targetTime = targetProgress * duration;
-          const difference = targetTime - easedTime;
-          const seekThreshold = Math.max(0.05, duration / 500);
+        if(Math.abs(difference) > progressThreshold){
+          easedProgress += difference * smoothingFactor;
+          const nextTime = easedProgress * duration;
+          const seekThreshold = Math.max(0.05, duration / 600);
+          const seekIsDue = now - lastSeekAt >= minimumSeekInterval;
+          const seekIsUseful = Math.abs(nextTime - lastAppliedTime) >= seekThreshold;
 
-          if(Math.abs(difference) > seekThreshold){
-            easedTime += difference * smoothingFactor;
-            const seekIsDue = now - lastSeekAt >= minimumSeekInterval;
-            const seekIsUseful = Math.abs(easedTime - lastAppliedTime) >= seekThreshold;
-
-            if(seekIsDue && seekIsUseful && !heroVideo.seeking){
-              try{
-                heroVideo.currentTime = Math.min(duration, Math.max(0, easedTime));
-                lastAppliedTime = easedTime;
-                lastSeekAt = now;
-              }catch(e){
-                if(!hasValidFrame) heroWrap.classList.remove('video-ready');
-              }
+          if(seekIsDue && seekIsUseful && !heroVideo.seeking){
+            try{
+              heroVideo.currentTime = Math.min(duration, Math.max(0, nextTime));
+              lastAppliedTime = nextTime;
+              lastSeekAt = now;
+            }catch(e){
+              if(!hasValidFrame) heroWrap.classList.remove('video-ready');
             }
           }
         }
-        requestAnimationFrame(scrubLoop);
       }
-
-      heroVideo.addEventListener('loadedmetadata', onMetadata);
-      heroVideo.addEventListener('loadeddata', showValidFrame);
-      heroVideo.addEventListener('seeked', showValidFrame);
-      window.addEventListener('scroll', updateTargetProgress, {passive:true});
-      window.addEventListener('resize', updateTargetProgress);
-      if(heroVideo.readyState >= 1) onMetadata();
-      if(heroVideo.readyState >= 2) showValidFrame();
       requestAnimationFrame(scrubLoop);
     }
+
+    heroVideo.addEventListener('loadedmetadata', onMetadata);
+    heroVideo.addEventListener('loadeddata', onLoadedData);
+    heroVideo.addEventListener('canplay', warmUpTouchVideo);
+    heroVideo.addEventListener('playing', onPlaying);
+    heroVideo.addEventListener('seeked', showValidFrame);
+    window.addEventListener('scroll', updateTargetProgress, {passive:true});
+    window.addEventListener('resize', updateTargetProgress);
+    if(heroVideo.readyState >= 1) onMetadata();
+    if(heroVideo.readyState >= 2) onLoadedData();
+    requestAnimationFrame(scrubLoop);
   }
 });
