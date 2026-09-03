@@ -241,46 +241,26 @@ document.addEventListener('DOMContentLoaded',()=>{
   lightbox.addEventListener('click', (e)=>{ if(e.target===lightbox) closeLightbox(); });
   document.addEventListener('keydown',(e)=>{ if(e.key==='Escape' && lightbox.getAttribute('aria-hidden') === 'false') closeLightbox(); });
 
-  // --- Scroll-scrub for hero video ---
+  // --- Background hero video controller ---
   const hero = document.querySelector('.hero-full');
   const heroVideo = document.getElementById('heroVideo');
   if(hero && heroVideo){
     const heroWrap = hero.querySelector('.hero-video-wrap');
+    const isTouchDevice = window.matchMedia('(pointer: coarse)').matches ||
+      window.matchMedia('(max-width: 640px)').matches ||
+      navigator.maxTouchPoints > 0;
     heroVideo.muted = true;
     heroVideo.playsInline = true;
-    heroVideo.autoplay = false;
-    heroVideo.loop = false;
-    heroVideo.pause();
-    let duration = 0;
-    let targetTime = 0;
-    const smoothingFactor = 0.12;
-    const seekThreshold = 0.015;
-    const minimumSeekInterval = 40;
-    let lastSeekTime = -Infinity;
-    let interpolatedTime = 0;
-    let lastAppliedTime = -Infinity;
     let hasValidFrame = false;
-
-    function onMetadata(){
-      duration = heroVideo.duration || 0;
-      interpolatedTime = heroVideo.currentTime || 0;
-      updateTarget();
-    }
 
     function showValidFrame(){
       hasValidFrame = true;
       heroWrap.classList.add('video-ready');
     }
 
-    heroVideo.addEventListener('loadedmetadata', onMetadata);
-    heroVideo.addEventListener('loadeddata', showValidFrame);
-    heroVideo.addEventListener('seeked', showValidFrame);
     heroVideo.addEventListener('error', ()=>{
       if(!hasValidFrame) heroWrap.classList.remove('video-ready');
     });
-    // if metadata already loaded
-    if(heroVideo.readyState >= 1) onMetadata();
-    if(heroVideo.readyState >= 2) showValidFrame();
 
     function getScrollProgress(){
       const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
@@ -288,35 +268,84 @@ document.addEventListener('DOMContentLoaded',()=>{
       return Math.min(Math.max(scrollY / Math.max(1, scrollRange), 0), 1);
     }
 
-    function updateTarget(){
-      const p = getScrollProgress();
-      if(duration && duration !== Infinity && !isNaN(duration)) targetTime = p * duration;
-    }
+    if(isTouchDevice){
+      heroVideo.autoplay = true;
+      heroVideo.loop = true;
+      heroVideo.setAttribute('autoplay', '');
+      heroVideo.setAttribute('loop', '');
 
-    function rafLoop(){
-      const now = performance.now();
-      const difference = targetTime - interpolatedTime;
-      if(duration && Math.abs(difference) > seekThreshold){
-        interpolatedTime += difference * smoothingFactor;
-        const canSeek = !heroVideo.seeking && now - lastSeekTime >= minimumSeekInterval;
-        if(canSeek && Math.abs(interpolatedTime - lastAppliedTime) >= seekThreshold){
-          try{
-            heroVideo.currentTime = Math.min(duration, Math.max(0, interpolatedTime));
-            lastSeekTime = now;
-            lastAppliedTime = interpolatedTime;
-          }catch(e){
+      function tryMobilePlayback(){
+        if(heroVideo.readyState < 1) return;
+        const playAttempt = heroVideo.play();
+        if(playAttempt && typeof playAttempt.catch === 'function'){
+          playAttempt.catch(()=>{
             if(!hasValidFrame) heroWrap.classList.remove('video-ready');
-          }
+          });
         }
       }
-      requestAnimationFrame(rafLoop);
-    }
 
-    // update on scroll/resize
-    window.addEventListener('scroll', updateTarget, {passive:true});
-    window.addEventListener('resize', updateTarget);
-    // ensure initial update
-    setTimeout(updateTarget, 100);
-    requestAnimationFrame(rafLoop);
+      heroVideo.addEventListener('playing', showValidFrame);
+      heroVideo.addEventListener('loadedmetadata', tryMobilePlayback);
+      heroVideo.addEventListener('canplay', tryMobilePlayback);
+      if(heroVideo.readyState >= 1) tryMobilePlayback();
+    } else {
+      heroVideo.autoplay = false;
+      heroVideo.loop = false;
+      heroVideo.removeAttribute('autoplay');
+      heroVideo.removeAttribute('loop');
+      heroVideo.pause();
+
+      let duration = 0;
+      let targetProgress = getScrollProgress();
+      let easedTime = 0;
+      let lastAppliedTime = -Infinity;
+      let lastSeekAt = -Infinity;
+      const smoothingFactor = 0.1;
+      const minimumSeekInterval = 100;
+
+      function updateTargetProgress(){
+        targetProgress = getScrollProgress();
+      }
+
+      function onMetadata(){
+        duration = Number.isFinite(heroVideo.duration) ? heroVideo.duration : 0;
+        easedTime = heroVideo.currentTime || 0;
+        updateTargetProgress();
+      }
+
+      function scrubLoop(now){
+        if(duration){
+          const targetTime = targetProgress * duration;
+          const difference = targetTime - easedTime;
+          const seekThreshold = Math.max(0.05, duration / 500);
+
+          if(Math.abs(difference) > seekThreshold){
+            easedTime += difference * smoothingFactor;
+            const seekIsDue = now - lastSeekAt >= minimumSeekInterval;
+            const seekIsUseful = Math.abs(easedTime - lastAppliedTime) >= seekThreshold;
+
+            if(seekIsDue && seekIsUseful && !heroVideo.seeking){
+              try{
+                heroVideo.currentTime = Math.min(duration, Math.max(0, easedTime));
+                lastAppliedTime = easedTime;
+                lastSeekAt = now;
+              }catch(e){
+                if(!hasValidFrame) heroWrap.classList.remove('video-ready');
+              }
+            }
+          }
+        }
+        requestAnimationFrame(scrubLoop);
+      }
+
+      heroVideo.addEventListener('loadedmetadata', onMetadata);
+      heroVideo.addEventListener('loadeddata', showValidFrame);
+      heroVideo.addEventListener('seeked', showValidFrame);
+      window.addEventListener('scroll', updateTargetProgress, {passive:true});
+      window.addEventListener('resize', updateTargetProgress);
+      if(heroVideo.readyState >= 1) onMetadata();
+      if(heroVideo.readyState >= 2) showValidFrame();
+      requestAnimationFrame(scrubLoop);
+    }
   }
 });
