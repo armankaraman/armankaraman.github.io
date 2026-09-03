@@ -3,7 +3,7 @@ const projects = [
     id: "project01",
     media: "assets/project01.jpg",
     title: "Project One",
-    category: "Motion Design",
+    category: "AI Visuals",
     year: "2026",
     description: "Replace this text with project description.",
     link: "",
