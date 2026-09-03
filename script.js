@@ -63,11 +63,11 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   async function resolveGallery(project){
     if(!Array.isArray(project.gallery)) return [];
-    const resolved = await Promise.all(project.gallery.map(async src=>{
+    const resolved = project.gallery.map(src=>{
       const extension = src.slice(src.lastIndexOf('.')).toLowerCase();
-      if(!mediaExtensions.includes(extension) || !await testMedia(src, extension)) return null;
+      if(!mediaExtensions.includes(extension)) return null;
       return {src, type:imageExtensions.has(extension) ? 'image' : 'video'};
-    }));
+    });
     return resolved.filter(Boolean);
   }
 
