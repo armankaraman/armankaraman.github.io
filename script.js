@@ -83,14 +83,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(heroVideo.readyState >= 1) onMetadata();
 
     function getScrollProgress(){
-      const rect = hero.getBoundingClientRect();
-      const vh = window.innerHeight;
-      // compute how far the viewport has scrolled within the hero section
-      const heroTop = window.scrollY + rect.top;
+      const scrollRange = document.documentElement.scrollHeight - window.innerHeight;
       const scrollY = window.scrollY || window.pageYOffset;
-      const maxScroll = hero.offsetHeight - vh;
-      const clamped = Math.min(Math.max((scrollY - heroTop) / Math.max(1, maxScroll), 0), 1);
-      return clamped;
+      return Math.min(Math.max(scrollY / Math.max(1, scrollRange), 0), 1);
     }
 
     function updateTarget(){
