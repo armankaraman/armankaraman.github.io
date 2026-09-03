@@ -15,7 +15,8 @@ document.addEventListener('DOMContentLoaded',()=>{
       const media = project.type === 'video'
         ? `<video class="project-video" muted playsinline preload="metadata"><source src="${project.media}" type="video/mp4"></video>`
         : `<img src="${project.media}" alt="${project.title}">`;
-      return `<article class="card" data-project-id="${project.id}"><div class="visual media-slot">${media}<div class="visual-title">${project.title}</div></div></article>`;
+      const category = project.category ? `<span class="visual-category">${project.category}</span>` : '';
+      return `<article class="card" data-project-id="${project.id}"><div class="visual media-slot">${media}<div class="visual-title">${project.title}${category}</div></div></article>`;
     }).join('');
   }
 
