@@ -150,30 +150,35 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  function mediaMarkup(media, title, controls = false){
+  function mediaMarkup(media, title, controls = false, thumbnail = false){
     if(media.type === 'video'){
-      return `<video ${controls ? 'controls ' : ''}muted playsinline preload="none" src="${media.src}"></video>`;
+      return `<video ${controls ? 'controls ' : ''}muted loop playsinline preload="${thumbnail ? 'metadata' : 'none'}" src="${media.src}"></video>`;
     }
     return `<img src="${media.src}" alt="${title}">`;
   }
 
-  function bindGalleryPreviews(project){
+  function renderActiveMedia(media, title){
+    const activeMedia = lbMedia.querySelector('.lightbox-active-media');
+    if(!activeMedia) return;
+    activeMedia.innerHTML = mediaMarkup(media, title, media.type === 'video');
+    const video = activeMedia.querySelector('video');
+    if(video) video.play().catch(()=>{});
+  }
+
+  function bindGalleryPreviews(project, mediaItems){
     lbMedia.querySelectorAll('.lightbox-gallery-item').forEach((item,index)=>{
       const video = item.querySelector('video');
       if(video){
+        video.play().catch(()=>{});
         item.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
         item.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
       }
-      item.addEventListener('click',()=>openGalleryMedia(project,index));
+      item.addEventListener('click',()=>{
+        const previousVideo = lbMedia.querySelector('.lightbox-active-media video');
+        if(previousVideo) previousVideo.pause();
+        renderActiveMedia(mediaItems[index], project.title);
+      });
     });
-  }
-
-  function openGalleryMedia(project,index){
-    const gallery = resolvedGalleries.get(project.id) || [];
-    const media = gallery[index];
-    if(!media) return;
-    lbMedia.innerHTML = `<button class="gallery-back" type="button">Back to gallery</button><div class="lightbox-focused-media">${mediaMarkup(media, project.title, media.type === 'video')}</div>`;
-    lbMedia.querySelector('.gallery-back').addEventListener('click',()=>openLightbox(project));
   }
 
   async function openLightbox(project){
@@ -182,12 +187,11 @@ document.addEventListener('DOMContentLoaded',()=>{
       lbMedia.innerHTML = `<iframe title="${project.title}" src="${project.sketchfab}" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>`;
     } else if(media){
       const gallery = resolvedGalleries.get(project.id) || [];
-      const mainMarkup = mediaMarkup(media, project.title, true);
-      const galleryMarkup = gallery.length
-        ? `<div class="lightbox-gallery">${gallery.map(item=>`<div class="lightbox-gallery-item">${mediaMarkup(item, project.title)}</div>`).join('')}</div>`
-        : '';
-      lbMedia.innerHTML = `<div class="lightbox-main-media">${mainMarkup}</div>${galleryMarkup}`;
-      bindGalleryPreviews(project);
+      const mediaItems = [media,...gallery];
+      lbMedia.innerHTML = `<div class="lightbox-active-media">${mediaMarkup(media, project.title, media.type === 'video')}</div><div class="lightbox-gallery">${mediaItems.map(item=>`<div class="lightbox-gallery-item">${mediaMarkup(item, project.title, false, true)}</div>`).join('')}</div>`;
+      bindGalleryPreviews(project, mediaItems);
+      const activeVideo = lbMedia.querySelector('.lightbox-active-media video');
+      if(activeVideo) activeVideo.play().catch(()=>{});
     } else if(resolvedMotionProjects.get(project._motionIndex)){
       const motionMedia = resolvedMotionProjects.get(project._motionIndex);
       lbMedia.innerHTML = mediaMarkup(motionMedia, project.title, motionMedia.type === 'video');
@@ -240,7 +244,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     heroVideo.pause();
     let duration = 0;
     let targetTime = 0;
-    let rafId = null;
+    const smoothingFactor = 0.12;
+    const seekThreshold = 0.01;
 
     function onMetadata(){
       duration = heroVideo.duration || 0;
@@ -257,27 +262,18 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
 
     function updateTarget(){
-      if(!duration || duration === Infinity || isNaN(duration)) return;
       const p = getScrollProgress();
-      targetTime = p * duration;
-      // start RAF loop
-      if(rafId === null) rafLoop();
+      if(duration && duration !== Infinity && !isNaN(duration)) targetTime = p * duration;
     }
 
     function rafLoop(){
-      rafId = requestAnimationFrame(()=>{
-        const cur = heroVideo.currentTime || 0;
-        const diff = targetTime - cur;
-        // interpolate for smoothness
-        const step = diff * 0.2;
-        if(Math.abs(diff) > 0.02){
-          try{ heroVideo.currentTime = cur + step; }catch(e){}
-          rafLoop();
-        } else {
-          try{ heroVideo.currentTime = targetTime; }catch(e){}
-          rafId = null;
-        }
-      });
+      const currentTime = heroVideo.currentTime || 0;
+      const difference = targetTime - currentTime;
+      if(Math.abs(difference) > seekThreshold){
+        const nextTime = currentTime + difference * smoothingFactor;
+        try{ heroVideo.currentTime = nextTime; }catch(e){}
+      }
+      requestAnimationFrame(rafLoop);
     }
 
     // update on scroll/resize
@@ -285,5 +281,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     window.addEventListener('resize', updateTarget);
     // ensure initial update
     setTimeout(updateTarget, 100);
+    requestAnimationFrame(rafLoop);
   }
 });

@@ -84,14 +84,12 @@ h2{font-size:32px;margin:0 0 18px}
 .lightbox[aria-hidden="false"]{opacity:1;pointer-events:auto}
 .lightbox-content{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(260px,.8fr);width:min(1200px,100%);overflow:visible;border-radius:12px;background:var(--panel);flex:0 0 auto}
 .lightbox-media{display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:18px;min-width:0;background:#050607}
-.lightbox-main-media{display:flex;align-items:center;justify-content:center;width:100%;flex:0 0 auto}
+.lightbox-active-media{display:flex;align-items:center;justify-content:center;width:100%;flex:0 0 auto}
 .lightbox-gallery{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;width:100%}
 .lightbox-gallery-item{position:relative;display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:16 / 10;overflow:hidden;flex:0 0 auto;cursor:pointer;background:#0b0b0c}
-.lightbox-gallery-item img,.lightbox-gallery-item video{width:100%;height:100%;object-fit:cover;display:block}
+.lightbox-media .lightbox-gallery-item img,.lightbox-media .lightbox-gallery-item video{width:100%;height:100%;object-fit:cover;display:block}
 .lightbox-media img,.lightbox-media video{width:100%;height:auto;max-height:none;object-fit:contain;display:block}
-.lightbox-focused-media{display:flex;align-items:center;justify-content:center;width:100%;min-height:360px}
-.lightbox-focused-media img,.lightbox-focused-media video{width:100%;height:auto;max-height:90vh;object-fit:contain;display:block}
-.gallery-back{align-self:flex-start;padding:8px 12px;border:1px solid rgba(255,255,255,.16);border-radius:6px;background:transparent;color:var(--text);cursor:pointer}
+.lightbox-active-media img,.lightbox-active-media video{max-height:90vh;object-fit:contain}
 .lightbox-media iframe{width:100%;height:100%;min-height:560px;border:0;display:block}
 .lightbox-info{padding:clamp(24px,4vw,48px);overflow-y:auto}
 .lightbox-category{margin:0 0 12px;color:var(--accent);font-size:13px;text-transform:uppercase;letter-spacing:.08em}
