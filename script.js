@@ -189,9 +189,12 @@ document.addEventListener('DOMContentLoaded',()=>{
       lbMedia.innerHTML = `<iframe title="${project.title}" src="${project.sketchfab}" allow="autoplay; fullscreen; xr-spatial-tracking" allowfullscreen></iframe>`;
     } else if(media){
       const gallery = resolvedGalleries.get(project.id) || [];
-      const mediaItems = [media,...gallery];
-      lbMedia.innerHTML = `<div class="lightbox-active-media">${mediaMarkup(media, project.title, media.type === 'video')}</div><div class="lightbox-gallery">${mediaItems.map(item=>`<div class="lightbox-gallery-item">${mediaMarkup(item, project.title, false, true)}</div>`).join('')}</div>`;
-      bindGalleryPreviews(project, mediaItems);
+      const mediaItems = gallery.filter((item,index,items)=>item.src !== media.src && items.findIndex(candidate=>candidate.src === item.src) === index);
+      const galleryMarkup = mediaItems.length
+        ? `<div class="lightbox-gallery">${mediaItems.map(item=>`<div class="lightbox-gallery-item">${mediaMarkup(item, project.title, false, true)}</div>`).join('')}</div>`
+        : '';
+      lbMedia.innerHTML = `<div class="lightbox-active-media">${mediaMarkup(media, project.title, media.type === 'video')}</div>${galleryMarkup}`;
+      if(mediaItems.length) bindGalleryPreviews(project, mediaItems);
       const activeVideo = lbMedia.querySelector('.lightbox-active-media video');
       if(activeVideo) activeVideo.play().catch(()=>{});
     } else if(resolvedMotionProjects.get(project._motionIndex)){
