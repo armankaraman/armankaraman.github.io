@@ -1,12 +1,126 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Arman Karaman — Portfolio</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arman Karaman — Motion Designer • 3D • AI Visuals</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <h1>Arman Karaman</h1>
-  <p>Motion Designer / 3D Artist / AI Visuals</p>
+  <header class="site-header">
+    <div class="inner">
+      <a class="brand" href="#hero">Arman Karaman</a>
+      <nav class="nav">
+        <a href="#work">Selected Work</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section id="hero" class="hero hero-full">
+      <div class="hero-video-wrap">
+        <video id="heroVideo" preload="metadata" playsinline muted crossorigin="anonymous">
+          <source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4">
+        </video>
+      </div>
+
+      <div class="container hero-inner">
+        <h1 class="hero-title">ARMAN KARAMAN</h1>
+        <p class="lead hero-sub">Motion Designer / 3D Artist / AI Visuals</p>
+        <p class="cta-row">
+          <a class="cta" href="#work">Selected Work</a>
+        </p>
+      </div>
+    </section>
+
+    <section id="work" class="section">
+      <div class="container">
+        <h2>Selected Work</h2>
+        <div class="grid large" id="projects">
+          <!-- Project cards are visual-first; add `data-image-src` or `data-video-src` later -->
+          <article class="card" data-type="image" data-title="Project One">
+            <div class="visual"><div class="visual-title">Project One</div></div>
+          </article>
+
+          <article class="card" data-type="video" data-title="Project Two">
+            <div class="visual"><div class="visual-title">Project Two</div></div>
+          </article>
+
+          <article class="card" data-type="image" data-title="Project Three">
+            <div class="visual"><div class="visual-title">Project Three</div></div>
+          </article>
+
+          <article class="card" data-type="image" data-title="Project Four">
+            <div class="visual"><div class="visual-title">Project Four</div></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="motion" class="section slim">
+      <div class="container">
+        <h2>Motion Design</h2>
+        <p class="muted">Selected motion pieces.</p>
+      </div>
+    </section>
+
+    <section id="characters" class="section slim">
+      <div class="container">
+        <h2>3D Characters</h2>
+      </div>
+    </section>
+
+    <section id="ai" class="section slim">
+      <div class="container">
+        <h2>AI / Commercial</h2>
+      </div>
+    </section>
+
+    <section id="about" class="section">
+      <div class="container narrow">
+        <h2>About</h2>
+        <p>I'm a Motion Designer and 3D Artist based in Almaty, Kazakhstan.</p>
+
+        <p>I work across motion design, 3D, AI-assisted visuals and commercial content, combining design, animation and visual storytelling.</p>
+
+        <p>My background includes work with KPMG, Tetra Pak, Sergek Group and real estate projects, with a focus on polished visuals, clear communication and production-ready execution.</p>
+      </div>
+    </section>
+
+    <section id="experience" class="section">
+      <div class="container narrow">
+        <h2>Experience</h2>
+        <ul class="timeline">
+          <li><strong>Motion Designer</strong> — Basis-A<br><span class="muted-small">2026 — Present</span></li>
+          <li><strong>3D Motion Designer</strong> — Sergek Group<br><span class="muted-small">2024 — 2025</span></li>
+          <li><strong>Design Developer / Coordinator</strong> — Tetra Pak<br><span class="muted-small">2022 — 2024</span></li>
+          <li><strong>Senior Graphic / Motion Designer</strong> — KPMG<br><span class="muted-small">2018 — 2022</span></li>
+          <li><strong>Graphic Designer / 3D Constructor</strong> — AlmaDK<br><span class="muted-small">2014 — 2018</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="contact" class="section contact">
+      <div class="container narrow">
+        <h2>Contact</h2>
+        <p>For commissions, collaborations or inquiries:</p>
+        <p><a class="email" href="mailto:karaman.arman@gmail.com">karaman.arman@gmail.com</a></p>
+        <p class="muted">Follow:
+          <a href="https://www.instagram.com/karaman.arman/" target="_blank" rel="noopener">Instagram</a>
+          — <a href="https://www.linkedin.com/in/arman-karaman/" target="_blank" rel="noopener">LinkedIn</a>
+          — <a href="https://www.artstation.com/qaramanarman" target="_blank" rel="noopener">ArtStation</a>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <div id="lightbox" class="lightbox" aria-hidden="true">
+    <button class="close" aria-label="Close">✕</button>
+    <div class="lightbox-content"></div>
+  </div>
+
+  <script src="script.js"></script>
 </body>
 </html>
