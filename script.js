@@ -156,6 +156,25 @@ document.addEventListener('DOMContentLoaded',()=>{
     return `<img src="${media.src}" alt="${title}">`;
   }
 
+  function bindGalleryPreviews(project){
+    lbMedia.querySelectorAll('.lightbox-gallery-item').forEach((item,index)=>{
+      const video = item.querySelector('video');
+      if(video){
+        item.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
+        item.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
+      }
+      item.addEventListener('click',()=>openGalleryMedia(project,index));
+    });
+  }
+
+  function openGalleryMedia(project,index){
+    const gallery = resolvedGalleries.get(project.id) || [];
+    const media = gallery[index];
+    if(!media) return;
+    lbMedia.innerHTML = `<button class="gallery-back" type="button">Back to gallery</button><div class="lightbox-focused-media">${mediaMarkup(media, project.title, media.type === 'video')}</div>`;
+    lbMedia.querySelector('.gallery-back').addEventListener('click',()=>openLightbox(project));
+  }
+
   async function openLightbox(project){
     const media = resolvedProjects.get(project.id);
     if(project.sketchfab){
@@ -163,8 +182,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     } else if(media){
       const gallery = resolvedGalleries.get(project.id) || [];
       const mainMarkup = mediaMarkup(media, project.title, true);
-      const galleryMarkup = gallery.map(item=>`<div class="lightbox-gallery-item">${mediaMarkup(item, project.title, item.type === 'video')}</div>`).join('');
+      const galleryMarkup = gallery.length
+        ? `<div class="lightbox-gallery">${gallery.map(item=>`<div class="lightbox-gallery-item">${mediaMarkup(item, project.title)}</div>`).join('')}</div>`
+        : '';
       lbMedia.innerHTML = `<div class="lightbox-main-media">${mainMarkup}</div>${galleryMarkup}`;
+      bindGalleryPreviews(project);
     } else if(resolvedMotionProjects.get(project._motionIndex)){
       const motionMedia = resolvedMotionProjects.get(project._motionIndex);
       lbMedia.innerHTML = mediaMarkup(motionMedia, project.title, motionMedia.type === 'video');
