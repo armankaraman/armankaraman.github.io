@@ -18,7 +18,8 @@ const projects = [
     category: "3D",
     year: "2026",
     description: "Replace this text with project description.",
-    link: ""
+    link: "",
+    gallery: []
   },
   {
     id: "project03",
@@ -27,7 +28,8 @@ const projects = [
     category: "AI Visuals",
     year: "2026",
     description: "Replace this text with project description.",
-    link: ""
+    link: "",
+    gallery: []
   },
   {
     id: "project04",
@@ -36,7 +38,8 @@ const projects = [
     category: "Commercial",
     year: "2026",
     description: "Replace this text with project description.",
-    link: ""
+    link: "",
+    gallery: []
   },
   {
     id: "project05",
@@ -45,7 +48,8 @@ const projects = [
     category: "Motion Design",
     year: "2026",
     description: "Replace this text with project description.",
-    link: ""
+    link: "",
+    gallery: []
   },
   {
     id: "project06",
@@ -54,7 +58,8 @@ const projects = [
     category: "Motion Design",
     year: "2026",
     description: "Replace this text with project description.",
-    link: ""
+    link: "",
+    gallery: []
   }
 ];
 

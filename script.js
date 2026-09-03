@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded',()=>{
   const projectsGrid = document.getElementById('projects');
   const threeDGrid = document.getElementById('three-d-projects');
-  const motionGrid = document.querySelector('#motion .grid') || createMotionGrid();
+  const motionGrid = document.querySelector('#motion .grid');
   const lightbox = document.getElementById('lightbox');
   const lbMedia = lightbox.querySelector('.lightbox-media');
   const lbCategory = lightbox.querySelector('.lightbox-category');
@@ -16,15 +16,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const resolvedProjects = new Map();
   const resolvedGalleries = new Map();
   const resolvedMotionProjects = new Map();
-
-  function createMotionGrid(){
-    const section = document.getElementById('motion');
-    const container = section.querySelector('.container');
-    const grid = document.createElement('div');
-    grid.className = 'grid motion-grid';
-    container.appendChild(grid);
-    return grid;
-  }
 
   function testMedia(src, extension){
     return new Promise(resolve=>{
@@ -113,6 +104,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   function renderMotionProjects(){
+    if(!motionGrid) return;
     motionGrid.innerHTML = motionProjects.map((project,index)=>{
       const resolvedMedia = resolvedMotionProjects.get(index);
       const media = resolvedMedia?.type === 'video'
