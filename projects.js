@@ -1,14 +1,15 @@
 const projects = [
   {
     id: "project01",
-    media: "assets/project01.jpg",
+    media: "assets/project01.mp4",
     title: "Taulan Residential Complex",
     category: "Ai Visuals",
     year: "2026",
     description: "Replace this text with project description.",
     link: "",
     gallery: [
-      "assets/project01-2.mp4"
+      "assets/project01-2.mp4",
+      "assets/project01-3.jpg"
     ]
   },
   {
