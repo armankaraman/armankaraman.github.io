@@ -25,6 +25,7 @@ if (hero && stage) {
   let targetProgress = 0;
   let displayedProgress = 0;
   let animationFrame = 0;
+  const cameraRollFix = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI);
 
   function getProgress() {
     const heroTop = hero.offsetTop;
@@ -51,6 +52,7 @@ if (hero && stage) {
       const animationTime = displayedProgress * cameraClip.duration;
       mixer.setTime(animationTime);
       stage.dataset.heroAnimationTime = animationTime.toFixed(3);
+      camera.quaternion.multiply(cameraRollFix);
     }
     camera.updateMatrixWorld();
     renderer.render(scene, camera);
@@ -117,6 +119,12 @@ if (hero && stage) {
         console.info('[hero-3d] No Blender camera found; using fallback PerspectiveCamera.');
       } else {
         stage.dataset.heroStatus = `loaded:camera:${sourceCamera.name || 'unnamed'}`;
+      }
+      if (camera.isPerspectiveCamera) {
+        camera.fov = Math.max(42, THREE.MathUtils.radToDeg(camera.fov));
+        camera.near = 0.01;
+        camera.far = 1000;
+        camera.updateProjectionMatrix();
       }
       camera.updateMatrixWorld(true);
       stage.dataset.heroBounds = `${sphere.center.x.toFixed(2)},${sphere.center.y.toFixed(2)},${sphere.center.z.toFixed(2)},${sphere.radius.toFixed(2)}`;
