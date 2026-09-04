@@ -5,6 +5,8 @@ const hero = document.querySelector('.hero-full');
 const stage = document.querySelector('.hero-stage');
 const HERO_GLB_PATH = 'assets/site test.glb';
 const HERO_CAMERA_VISUAL_SCALE = 0.6;
+const HERO_MOBILE_CAMERA_VISUAL_SCALE = 0.38;
+const HERO_TABLET_CAMERA_VISUAL_SCALE = 0.48;
 const HERO_END_ZOOM = 1.18;
 const HERO_END_FLY_DISTANCE = 0.34;
 const HERO_END_DROP_DISTANCE = 0.16;
@@ -12,8 +14,9 @@ const HERO_SHADOW_OPACITY = 0.34;
 const HERO_CHROME_ENV_INTENSITY = 2.65;
 const HERO_ENV_ROTATION_TURNS = 0.85;
 const HERO_ENV_ROTATION_TILT = 0.18;
-const HERO_SCRUB_DAMPING = 8;
-const HERO_SCRUB_EPSILON = 0.00035;
+const HERO_SCRUB_DAMPING = 5.2;
+const HERO_SCRUB_EPSILON = 0.00018;
+const HERO_MOTION_EASE_WEIGHT = 0.38;
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
@@ -92,6 +95,7 @@ if (hero && stage) {
   let actions = [];
   let animationDuration = 0;
   let scrubDuration = 0;
+  let sourceCameraZoom = 1;
   let baseCameraZoom = 1;
   let flyDistance = 0;
   let targetProgress = 0;
@@ -127,8 +131,24 @@ if (hero && stage) {
     return amount * amount * amount * (amount * (amount * 6 - 15) + 10);
   }
 
+  function responsiveCameraScale(width = stage.clientWidth, height = stage.clientHeight) {
+    const aspect = width / Math.max(1, height);
+    if (aspect < 0.68) return HERO_MOBILE_CAMERA_VISUAL_SCALE;
+    if (aspect < 0.9) return THREE.MathUtils.lerp(HERO_MOBILE_CAMERA_VISUAL_SCALE, HERO_TABLET_CAMERA_VISUAL_SCALE, (aspect - 0.68) / 0.22);
+    if (aspect < 1.18) return THREE.MathUtils.lerp(HERO_TABLET_CAMERA_VISUAL_SCALE, HERO_CAMERA_VISUAL_SCALE, (aspect - 0.9) / 0.28);
+    return HERO_CAMERA_VISUAL_SCALE;
+  }
+
+  function updateResponsiveCameraZoom(width = stage.clientWidth, height = stage.clientHeight) {
+    if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) return;
+    baseCameraZoom = sourceCameraZoom * responsiveCameraScale(width, height);
+    camera.zoom = baseCameraZoom * THREE.MathUtils.lerp(1, HERO_END_ZOOM, getMotionProgress());
+    camera.updateProjectionMatrix();
+  }
+
   function getMotionProgress() {
-    return smootherstep(displayedProgress);
+    const easedProgress = smootherstep(displayedProgress);
+    return THREE.MathUtils.lerp(displayedProgress, easedProgress, HERO_MOTION_EASE_WEIGHT);
   }
 
   function scrubAnimation() {
@@ -172,8 +192,8 @@ if (hero && stage) {
     renderer.setSize(width, height, false);
     if (camera.isPerspectiveCamera) {
       camera.aspect = width / height;
-      camera.updateProjectionMatrix();
     }
+    updateResponsiveCameraZoom(width, height);
     targetProgress = getProgress();
     displayedProgress = targetProgress;
     renderScene();
@@ -279,9 +299,8 @@ if (hero && stage) {
       camera = sourceCamera;
       stage.dataset.heroStatus = `loaded:camera:${sourceCamera.name || 'unnamed'}`;
       if (camera.isPerspectiveCamera || camera.isOrthographicCamera) {
-        camera.zoom *= HERO_CAMERA_VISUAL_SCALE;
-        baseCameraZoom = camera.zoom;
-        camera.updateProjectionMatrix();
+        sourceCameraZoom = camera.zoom;
+        updateResponsiveCameraZoom();
       }
       baseCameraPosition.copy(camera.position);
       baseCameraQuaternion.copy(camera.quaternion);
