@@ -1,23 +1,26 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
-import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
 
 const hero = document.querySelector('.hero-full');
 const stage = document.querySelector('.hero-stage');
 const HERO_GLB_PATH = 'assets/site test.glb';
-const HERO_SCRUB_FRAMES = 45;
-const HERO_ANIMATION_FPS = 24;
 const HERO_CAMERA_VISUAL_SCALE = 0.6;
-const HERO_END_ZOOM = 1.08;
-const HERO_END_ZOOM_START = 0.82;
+const HERO_END_ZOOM = 1.1;
+const HERO_END_PUSH_START = 0.56;
+const HERO_END_FLY_DISTANCE = 0.28;
+const HERO_END_DROP_DISTANCE = 0.14;
 const HERO_SHADOW_OPACITY = 0.34;
-const HERO_CHROME_ENV_INTENSITY = 1.35;
+const HERO_CHROME_ENV_INTENSITY = 2.65;
+const HERO_ENV_ROTATION_TURNS = 0.85;
+const HERO_ENV_ROTATION_TILT = 0.18;
+const HERO_SCRUB_DAMPING = 10;
+const HERO_SCRUB_EPSILON = 0.00035;
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
   const scene = new THREE.Scene();
-  scene.add(new THREE.HemisphereLight(0xf0f0f0, 0x202020, 1.6));
-  const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+  scene.add(new THREE.HemisphereLight(0xcfd6dc, 0x111111, 0.72));
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.65);
   keyLight.position.set(4, 8, 6);
   keyLight.castShadow = true;
   keyLight.shadow.mapSize.set(2048, 2048);
@@ -27,24 +30,63 @@ if (hero && stage) {
   renderer.setClearColor(0x111111, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
+  renderer.toneMappingExposure = 0.92;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   stage.appendChild(renderer.domElement);
 
-  const pmremGenerator = new THREE.PMREMGenerator(renderer);
-  const studioEnvironment = new RoomEnvironment(renderer);
-  const studioEnvironmentMap = pmremGenerator.fromScene(studioEnvironment, 0.04).texture;
-  scene.environment = studioEnvironmentMap;
-  studioEnvironment.dispose();
-  pmremGenerator.dispose();
+  function paintSoftBox(context, x, y, width, height, color, opacity) {
+    context.save();
+    context.shadowColor = color;
+    context.shadowBlur = Math.max(width, height) * 0.45;
+    context.globalAlpha = opacity;
+    context.fillStyle = color;
+    context.fillRect(x, y, width, height);
+    context.restore();
+  }
+
+  function createStudioEnvironmentMap() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 512;
+
+    const context = canvas.getContext('2d');
+    const background = context.createLinearGradient(0, 0, 0, canvas.height);
+    background.addColorStop(0, '#050607');
+    background.addColorStop(0.42, '#17191b');
+    background.addColorStop(0.58, '#050607');
+    background.addColorStop(1, '#020202');
+    context.fillStyle = background;
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    paintSoftBox(context, 96, 96, 86, 310, '#d9e2ea', 0.95);
+    paintSoftBox(context, 776, 74, 150, 350, '#ffffff', 0.92);
+    paintSoftBox(context, 408, 28, 220, 54, '#bfc7ce', 0.58);
+    paintSoftBox(context, 300, 326, 360, 28, '#76808a', 0.36);
+    paintSoftBox(context, 670, 250, 42, 140, '#a0bad6', 0.48);
+    paintSoftBox(context, 198, 258, 42, 120, '#d4c3ad', 0.34);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    texture.needsUpdate = true;
+
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    const environmentMap = pmremGenerator.fromEquirectangular(texture).texture;
+    texture.dispose();
+    pmremGenerator.dispose();
+    return environmentMap;
+  }
+
+  scene.environment = createStudioEnvironmentMap();
 
   const chromeMaterial = new THREE.MeshStandardMaterial({
-    color: 0xd8dadd,
+    color: 0x8f9499,
     metalness: 1,
-    roughness: 0.16,
+    roughness: 0.11,
     envMapIntensity: HERO_CHROME_ENV_INTENSITY
   });
+  chromeMaterial.envMapRotation = new THREE.Euler();
 
   let camera;
   let mixer;
@@ -52,7 +94,15 @@ if (hero && stage) {
   let animationDuration = 0;
   let scrubDuration = 0;
   let baseCameraZoom = 1;
-  let renderRequested = false;
+  let flyDistance = 0;
+  let targetProgress = 0;
+  let displayedProgress = 0;
+  let animationFrame = 0;
+  let lastFrameTime = 0;
+  const baseCameraPosition = new THREE.Vector3();
+  const baseCameraQuaternion = new THREE.Quaternion();
+  const cameraForward = new THREE.Vector3();
+  const cameraDown = new THREE.Vector3();
 
   function getProgress() {
     const heroTop = hero.offsetTop;
@@ -74,10 +124,13 @@ if (hero && stage) {
       .filter(Boolean);
   }
 
+  function smootherstep(amount) {
+    return amount * amount * amount * (amount * (amount * 6 - 15) + 10);
+  }
+
   function scrubAnimation() {
     if (!mixer || !scrubDuration) return;
-    const progress = getProgress();
-    const animationTime = progress * scrubDuration;
+    const animationTime = displayedProgress * scrubDuration;
     actions.forEach((action) => {
       action.enabled = true;
       action.paused = false;
@@ -86,11 +139,26 @@ if (hero && stage) {
     stage.dataset.heroAnimationTime = animationTime.toFixed(3);
   }
 
-  function updateEndZoom() {
+  function updateEndPush() {
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) return;
-    const zoomProgress = THREE.MathUtils.smoothstep(getProgress(), HERO_END_ZOOM_START, 1);
-    camera.zoom = baseCameraZoom * THREE.MathUtils.lerp(1, HERO_END_ZOOM, zoomProgress);
+    const pushAmount = THREE.MathUtils.clamp((displayedProgress - HERO_END_PUSH_START) / (1 - HERO_END_PUSH_START), 0, 1);
+    const pushProgress = smootherstep(pushAmount);
+    cameraForward.set(0, 0, -1).applyQuaternion(baseCameraQuaternion);
+    cameraDown.set(0, -1, 0).applyQuaternion(baseCameraQuaternion);
+    camera.position
+      .copy(baseCameraPosition)
+      .addScaledVector(cameraForward, flyDistance * pushProgress)
+      .addScaledVector(cameraDown, flyDistance * HERO_END_DROP_DISTANCE * pushProgress);
+    camera.zoom = baseCameraZoom * THREE.MathUtils.lerp(1, HERO_END_ZOOM, pushProgress);
     camera.updateProjectionMatrix();
+  }
+
+  function updateEnvironmentReflection() {
+    chromeMaterial.envMapRotation.set(
+      Math.sin(displayedProgress * Math.PI) * HERO_ENV_ROTATION_TILT,
+      displayedProgress * Math.PI * 2 * HERO_ENV_ROTATION_TURNS,
+      0
+    );
   }
 
   function resize() {
@@ -103,22 +171,46 @@ if (hero && stage) {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     }
-    requestRender();
+    targetProgress = getProgress();
+    displayedProgress = targetProgress;
+    renderScene();
   }
 
-  function render() {
-    renderRequested = false;
+  function renderScene() {
     if (!camera) return;
     scrubAnimation();
-    updateEndZoom();
+    updateEndPush();
+    updateEnvironmentReflection();
     camera.updateMatrixWorld();
     renderer.render(scene, camera);
   }
 
+  function animateScrub(timestamp) {
+    const deltaTime = lastFrameTime ? Math.min((timestamp - lastFrameTime) / 1000, 0.05) : 1 / 60;
+    lastFrameTime = timestamp;
+    targetProgress = getProgress();
+    displayedProgress += (targetProgress - displayedProgress) * (1 - Math.exp(-HERO_SCRUB_DAMPING * deltaTime));
+
+    const difference = Math.abs(targetProgress - displayedProgress);
+    if (difference < HERO_SCRUB_EPSILON) {
+      displayedProgress = targetProgress;
+    }
+
+    renderScene();
+
+    if (Math.abs(targetProgress - displayedProgress) > HERO_SCRUB_EPSILON) {
+      animationFrame = requestAnimationFrame(animateScrub);
+    } else {
+      animationFrame = 0;
+      lastFrameTime = 0;
+    }
+  }
+
   function requestRender() {
-    if (renderRequested) return;
-    renderRequested = true;
-    requestAnimationFrame(render);
+    targetProgress = getProgress();
+    if (!animationFrame) {
+      animationFrame = requestAnimationFrame(animateScrub);
+    }
   }
 
   function isShadowCatcher(object) {
@@ -159,6 +251,8 @@ if (hero && stage) {
         object.material = chromeMaterial;
       }
     });
+
+    return sphere;
   }
 
   new GLTFLoader().load(
@@ -167,7 +261,7 @@ if (hero && stage) {
       const model = gltf.scene;
       scene.add(model);
       scene.updateMatrixWorld(true);
-      setupShadows(model);
+      const modelSphere = setupShadows(model);
       console.info('[hero-3d] GLB loaded:', HERO_GLB_PATH);
       console.info('[hero-3d] Cameras:', gltf.cameras.map((item) => item.name || '(unnamed)'));
       console.info('[hero-3d] Animation clips:', gltf.animations.map((item) => item.name || '(unnamed)'));
@@ -186,12 +280,15 @@ if (hero && stage) {
         baseCameraZoom = camera.zoom;
         camera.updateProjectionMatrix();
       }
+      baseCameraPosition.copy(camera.position);
+      baseCameraQuaternion.copy(camera.quaternion);
+      flyDistance = modelSphere.radius * HERO_END_FLY_DISTANCE;
       camera.updateMatrixWorld(true);
 
       const cameras = gltf.cameras.length ? gltf.cameras : [sourceCamera];
       const scrubClips = createScrubClips(gltf.animations, cameras);
       animationDuration = scrubClips.reduce((duration, clip) => Math.max(duration, clip.duration), 0);
-      scrubDuration = Math.min(animationDuration, HERO_SCRUB_FRAMES / HERO_ANIMATION_FPS);
+      scrubDuration = animationDuration;
       if (scrubClips.length && scrubDuration) {
         mixer = new THREE.AnimationMixer(model);
         actions = scrubClips.map((clip) => {
@@ -209,6 +306,8 @@ if (hero && stage) {
       }
 
       console.info('[hero-3d] Active GLB camera:', sourceCamera.name || '(unnamed)');
+      targetProgress = getProgress();
+      displayedProgress = targetProgress;
       resize();
       requestRender();
     },
