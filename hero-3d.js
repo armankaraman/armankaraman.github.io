@@ -3,6 +3,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
 
 const hero = document.querySelector('.hero-full');
 const stage = document.querySelector('.hero-stage');
+const HERO_CAMERA_ZOOM = 1.2;
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
@@ -121,6 +122,7 @@ if (hero && stage) {
       }
       if (camera.isPerspectiveCamera) {
         camera.fov = Math.max(36, THREE.MathUtils.radToDeg(camera.fov));
+        camera.zoom = HERO_CAMERA_ZOOM;
         camera.near = 0.01;
         camera.far = 1000;
         camera.updateProjectionMatrix();
