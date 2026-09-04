@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     projectsGrid.innerHTML = projects.map(project=>{
       const resolvedMedia = resolvedProjects.get(project.id);
       const media = resolvedMedia?.type === 'video'
-        ? `<video class="project-video" muted playsinline preload="none" src="${resolvedMedia.src}"></video>`
+        ? `<video class="project-video" muted playsinline loop preload="metadata" data-autoplay src="${resolvedMedia.src}"></video>`
         : resolvedMedia
           ? `<img src="${resolvedMedia.src}" alt="${project.title}" loading="lazy">`
           : '';
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     motionGrid.innerHTML = motionProjects.map((project,index)=>{
       const resolvedMedia = resolvedMotionProjects.get(index);
       const media = resolvedMedia?.type === 'video'
-        ? `<video class="motion-project-video" muted playsinline preload="none" src="${resolvedMedia.src}"></video>`
+        ? `<video class="motion-project-video" muted playsinline loop preload="metadata" data-autoplay src="${resolvedMedia.src}"></video>`
         : resolvedMedia
           ? `<img src="${resolvedMedia.src}" alt="${project.title}" loading="lazy">`
           : '';
@@ -120,14 +120,34 @@ document.addEventListener('DOMContentLoaded',()=>{
       const project = motionProjects[card.dataset.motionProjectIndex];
       card.addEventListener('click',()=>openLightbox(project));
     });
+    setupAutoplayVideos(motionGrid);
   }
 
   function setupProjectInteractions(){
     projectsGrid.querySelectorAll('.card').forEach(card=>{
       const project = projects.find(item=>item.id === card.dataset.projectId);
-      const video = card.querySelector('video');
       card.addEventListener('click',()=>openLightbox(project));
     });
+    setupAutoplayVideos(projectsGrid);
+  }
+
+  function setupAutoplayVideos(container){
+    const videos = container.querySelectorAll('video[data-autoplay]');
+    if(!('IntersectionObserver' in window)){
+      videos.forEach(video=>video.play().catch(()=>{}));
+      return;
+    }
+    const observer = new IntersectionObserver(entries=>{
+      entries.forEach(entry=>{
+        const video = entry.target;
+        if(entry.isIntersecting){
+          video.play().catch(()=>{});
+        } else {
+          video.pause();
+        }
+      });
+    },{threshold:0.25});
+    videos.forEach(video=>observer.observe(video));
   }
 
   function mediaMarkup(media, title, controls = false, thumbnail = false){
