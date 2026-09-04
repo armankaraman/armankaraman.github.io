@@ -18,7 +18,7 @@ const projects = [
     title: "National Currency Day",
     category: "3D",
     year: "2025",
-    description: "Replace this text with project description3D motion piece created for Kazakhstan’s National Currency Day.",
+    description: "3D motion piece created for Kazakhstan’s National Currency Day.",
     link: "",
     gallery: []
   },
