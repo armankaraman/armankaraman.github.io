@@ -46,7 +46,7 @@ const projects = [
   },
   {
     id: "project05",
-    media: "",
+    media: "assets/project05.mp4",
     title: "Hyundai Mufasa",
     category: "Commercial",
     year: "2026",
@@ -56,7 +56,7 @@ const projects = [
   },
   {
     id: "project06",
-    media: "",
+    media: "assets/project06.mp4",
     title: "Showreel",
     category: "Motion Design",
     year: "2026",

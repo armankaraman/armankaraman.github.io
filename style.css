@@ -121,6 +121,7 @@ h2{font-size:32px;margin:0 0 18px}
   .grid{grid-template-columns:repeat(1,1fr)}
   .card{min-height:0;aspect-ratio:1}
   .card .media-slot{min-height:0}
+  .lightbox-media .lightbox-gallery-item img,.lightbox-media .lightbox-gallery-item video{object-fit:contain}
   .about-layout{grid-template-columns:1fr;gap:28px}
   .about-portrait{width:min(100%,220px);max-width:none}
   .lightbox-content{grid-template-columns:1fr;overflow:visible}

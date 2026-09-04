@@ -37,20 +37,19 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   async function resolveMedia(project){
     if(project.media){
-      const fileName = project.media.split('/').pop().toLowerCase();
       const extension = project.media.slice(project.media.lastIndexOf('.')).toLowerCase();
-      if(fileName === `${project.id}${extension}` && mediaExtensions.includes(extension)){
+      if(mediaExtensions.includes(extension)){
         return {src:project.media,type:imageExtensions.has(extension) ? 'image' : 'video'};
       }
       return null;
     }
-    for(const extension of mediaExtensions){
-      const src = `assets/${project.id}${extension}`;
-      if(await testMedia(src, extension)){
-        return { src, type: imageExtensions.has(extension) ? 'image' : 'video' };
-      }
-    }
-    return null;
+    const candidates = await Promise.all(mediaExtensions.map(async extension=>({
+      extension,
+      src: `assets/${project.id}${extension}`,
+      exists: await testMedia(`assets/${project.id}${extension}`, extension)
+    })));
+    const match = candidates.find(candidate=>candidate.exists);
+    return match ? {src:match.src,type:imageExtensions.has(match.extension) ? 'image' : 'video'} : null;
   }
 
   async function resolveGallery(project){
@@ -119,11 +118,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }).join('');
     motionGrid.querySelectorAll('.card').forEach(card=>{
       const project = motionProjects[card.dataset.motionProjectIndex];
-      const video = card.querySelector('video');
-      if(video){
-        card.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
-        card.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
-      }
       card.addEventListener('click',()=>openLightbox(project));
     });
   }
@@ -132,31 +126,23 @@ document.addEventListener('DOMContentLoaded',()=>{
     projectsGrid.querySelectorAll('.card').forEach(card=>{
       const project = projects.find(item=>item.id === card.dataset.projectId);
       const video = card.querySelector('video');
-      if(video){
-        card.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
-        card.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
-      }
       card.addEventListener('click',()=>openLightbox(project));
     });
-
-    const vids = document.querySelectorAll('video.project-video');
-    if('IntersectionObserver' in window){
-      const obs = new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          const video = entry.target;
-          if(entry.isIntersecting){ video.play().catch(()=>{}); }
-          else { video.pause(); }
-        });
-      },{threshold:0.5});
-      vids.forEach(video=>obs.observe(video));
-    }
   }
 
   function mediaMarkup(media, title, controls = false, thumbnail = false){
     if(media.type === 'video'){
-      return `<video ${controls ? 'controls ' : ''}muted loop playsinline preload="${thumbnail ? 'metadata' : 'none'}" src="${media.src}"></video>`;
+      return `<video ${controls ? 'controls ' : ''}muted playsinline preload="${thumbnail ? 'metadata' : 'metadata'}" src="${media.src}"></video>`;
     }
-    return `<img src="${media.src}" alt="${title}">`;
+    return `<img src="${media.src}" alt="${title}" loading="lazy">`;
+  }
+
+  function showVideoFirstFrame(video){
+    video.addEventListener('loadedmetadata',()=>{
+      try{ video.currentTime = 0; }catch(error){}
+    },{once:true});
+    video.addEventListener('loadeddata',()=>video.pause(),{once:true});
+    video.load();
   }
 
   function renderActiveMedia(media, title){
@@ -164,16 +150,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(!activeMedia) return;
     activeMedia.innerHTML = mediaMarkup(media, title, media.type === 'video');
     const video = activeMedia.querySelector('video');
-    if(video) video.play().catch(()=>{});
+    if(video) showVideoFirstFrame(video);
   }
 
   function bindGalleryPreviews(project, mediaItems){
     lbMedia.querySelectorAll('.lightbox-gallery-item').forEach((item,index)=>{
       const video = item.querySelector('video');
       if(video){
-        video.play().catch(()=>{});
-        item.addEventListener('mouseenter',()=>video.play().catch(()=>{}));
-        item.addEventListener('mouseleave',()=>{ video.pause(); video.currentTime=0; });
+        showVideoFirstFrame(video);
       }
       item.addEventListener('click',()=>{
         const previousVideo = lbMedia.querySelector('.lightbox-active-media video');
@@ -196,7 +180,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       lbMedia.innerHTML = `<div class="lightbox-active-media">${mediaMarkup(media, project.title, media.type === 'video')}</div>${galleryMarkup}`;
       if(mediaItems.length) bindGalleryPreviews(project, mediaItems);
       const activeVideo = lbMedia.querySelector('.lightbox-active-media video');
-      if(activeVideo) activeVideo.play().catch(()=>{});
+      if(activeVideo) showVideoFirstFrame(activeVideo);
     } else if(resolvedMotionProjects.get(project._motionIndex)){
       const motionMedia = resolvedMotionProjects.get(project._motionIndex);
       lbMedia.innerHTML = mediaMarkup(motionMedia, project.title, motionMedia.type === 'video');
