@@ -6,6 +6,7 @@ const stage = document.querySelector('.hero-stage');
 const HERO_GLB_PATH = 'assets/site test.glb';
 const HERO_SCRUB_FRAMES = 40;
 const HERO_ANIMATION_FPS = 24;
+const HERO_CAMERA_VISUAL_SCALE = 0.6;
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
@@ -111,6 +112,10 @@ if (hero && stage) {
 
       camera = sourceCamera;
       stage.dataset.heroStatus = `loaded:camera:${sourceCamera.name || 'unnamed'}`;
+      if (camera.isPerspectiveCamera || camera.isOrthographicCamera) {
+        camera.zoom *= HERO_CAMERA_VISUAL_SCALE;
+        camera.updateProjectionMatrix();
+      }
       camera.updateMatrixWorld(true);
 
       const cameras = gltf.cameras.length ? gltf.cameras : [sourceCamera];
