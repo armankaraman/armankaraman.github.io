@@ -78,12 +78,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   function renderThreeDProjects(){
-    threeDGrid.innerHTML = threeDProjects.map((project,index)=>`<article class="card three-d-card" data-three-d-project-index="${index}"><div class="visual media-slot three-d-preview" data-sketchfab-preview="${index}"><div class="three-d-badge" aria-hidden="true">3D</div><div class="visual-title">${project.title}<span class="visual-category">3D</span></div></div></article>`).join('');
+    threeDGrid.innerHTML = threeDProjects.slice(0,6).map((project,index)=>`<article class="card three-d-card" data-three-d-project-index="${index}"><div class="visual media-slot three-d-preview" data-sketchfab-preview="${index}"><div class="three-d-badge" aria-hidden="true">3D</div><div class="visual-title">${project.title}<span class="visual-category">3D</span></div></div></article>`).join('');
     threeDGrid.querySelectorAll('.card').forEach(card=>{
       const project = threeDProjects[card.dataset.threeDProjectIndex];
       card.addEventListener('click',()=>openLightbox(project));
     });
-    threeDProjects.forEach((project,index)=>loadSketchfabPreview(project,index));
+    threeDProjects.slice(0,6).forEach((project,index)=>loadSketchfabPreview(project,index));
   }
 
   async function loadSketchfabPreview(project,index){
