@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     projectsGrid.innerHTML = projects.map(project=>{
       const resolvedMedia = resolvedProjects.get(project.id);
       const media = resolvedMedia?.type === 'video'
-        ? `<video class="project-video" muted playsinline loop preload="metadata" data-autoplay src="${resolvedMedia.src}"></video>`
+        ? `<video class="project-video" muted autoplay playsinline loop preload="metadata" src="${resolvedMedia.src}"></video>`
         : resolvedMedia
           ? `<img src="${resolvedMedia.src}" alt="${project.title}" loading="lazy">`
           : '';
@@ -126,9 +126,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   function setupProjectInteractions(){
     projectsGrid.querySelectorAll('.card').forEach(card=>{
       const project = projects.find(item=>item.id === card.dataset.projectId);
+      const video = card.querySelector('.project-video');
+      if(video){
+        video.muted = true;
+        video.play().catch(()=>{});
+      }
       card.addEventListener('click',()=>openLightbox(project));
     });
-    setupAutoplayVideos(projectsGrid);
   }
 
   function setupAutoplayVideos(container){
