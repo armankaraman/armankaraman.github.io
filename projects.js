@@ -3,7 +3,7 @@ const projects = [
     id: "project01",
     media: "assets/project01.jpg",
     title: "Project One",
-    category: "AI Visuals",
+    category: "Taulan Residential Complex",
     year: "2026",
     description: "Replace this text with project description.",
     link: "",
@@ -14,7 +14,7 @@ const projects = [
   {
     id: "project02",
     media: "assets/project02.mp4",
-    title: "Project Two",
+    title: "National Currency Day",
     category: "3D",
     year: "2026",
     description: "Replace this text with project description.",
@@ -24,7 +24,7 @@ const projects = [
   {
     id: "project03",
     media: "assets/project03.mp4",
-    title: "Project Three",
+    title: "Sergek HR Bot",
     category: "AI Visuals",
     year: "2026",
     description: "Replace this text with project description.",
@@ -37,7 +37,7 @@ const projects = [
   {
     id: "project04",
     media: "assets/project04.mp4",
-    title: "Project Four",
+    title: "Sergek Smart City",
     category: "Motion Design",
     year: "2026",
     description: "Replace this text with project description.",
@@ -47,7 +47,7 @@ const projects = [
   {
     id: "project05",
     media: "",
-    title: "Project Five",
+    title: "Hyundai Mufasa",
     category: "Commercial",
     year: "2026",
     description: "Replace this text with project description.",
@@ -57,7 +57,7 @@ const projects = [
   {
     id: "project06",
     media: "",
-    title: "Project Six",
+    title: "Showreel",
     category: "Motion Design",
     year: "2026",
     description: "Replace this text with project description.",
