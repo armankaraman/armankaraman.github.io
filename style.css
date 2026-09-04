@@ -28,9 +28,10 @@ body{
 main{position:relative;z-index:1}
 
 .hero{padding:0}
-.hero-full{position:relative;min-height:100vh;display:block;border-bottom:1px solid var(--line)}
-.hero-inner{position:relative;width:100%;min-height:100vh;padding-top:84px;display:flex;flex-direction:column;justify-content:flex-end}
-.hero-stage{flex:1;min-height:0}
+.hero-full{position:relative;min-height:145vh;display:block;border-bottom:1px solid var(--line)}
+.hero-inner{position:relative;width:100%;min-height:145vh;padding-top:84px;display:flex;flex-direction:column;justify-content:flex-end}
+.hero-stage{position:relative;flex:1;min-height:0}
+.hero-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none}
 .career-line{max-width:100%;margin:0 0 42px;text-align:center;color:var(--muted);font-size:11px;letter-spacing:.02em}
 .scroll-indicator{position:absolute;bottom:18px;left:50%;width:18px;height:28px;border:1px solid var(--muted);border-radius:10px;transform:translateX(-50%);opacity:.8}
 .scroll-indicator span{position:absolute;top:6px;left:50%;width:2px;height:5px;background:var(--muted);transform:translateX(-50%)}
