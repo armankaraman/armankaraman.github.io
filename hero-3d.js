@@ -4,6 +4,8 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/
 const hero = document.querySelector('.hero-full');
 const stage = document.querySelector('.hero-stage');
 const HERO_GLB_PATH = 'assets/site test.glb';
+const HERO_SCRUB_FRAMES = 40;
+const HERO_ANIMATION_FPS = 24;
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
@@ -24,6 +26,8 @@ if (hero && stage) {
   let mixer;
   let actions = [];
   let animationDuration = 0;
+  let scrubDuration = 0;
+  let renderRequested = false;
 
   function getProgress() {
     const heroTop = hero.offsetTop;
@@ -46,8 +50,8 @@ if (hero && stage) {
   }
 
   function scrubAnimation() {
-    if (!mixer || !animationDuration) return;
-    const animationTime = getProgress() * animationDuration;
+    if (!mixer || !scrubDuration) return;
+    const animationTime = getProgress() * scrubDuration;
     actions.forEach((action) => {
       action.enabled = true;
       action.paused = false;
@@ -66,19 +70,21 @@ if (hero && stage) {
       camera.aspect = width / height;
       camera.updateProjectionMatrix();
     }
-    scrubAnimation();
-    render();
+    requestRender();
   }
 
   function render() {
+    renderRequested = false;
     if (!camera) return;
+    scrubAnimation();
     camera.updateMatrixWorld();
     renderer.render(scene, camera);
   }
 
-  function updateFromScroll() {
-    scrubAnimation();
-    render();
+  function requestRender() {
+    if (renderRequested) return;
+    renderRequested = true;
+    requestAnimationFrame(render);
   }
 
   new GLTFLoader().load(
@@ -105,15 +111,13 @@ if (hero && stage) {
 
       camera = sourceCamera;
       stage.dataset.heroStatus = `loaded:camera:${sourceCamera.name || 'unnamed'}`;
-      if (camera.isPerspectiveCamera) {
-        camera.updateProjectionMatrix();
-      }
       camera.updateMatrixWorld(true);
 
       const cameras = gltf.cameras.length ? gltf.cameras : [sourceCamera];
       const scrubClips = createScrubClips(gltf.animations, cameras);
       animationDuration = scrubClips.reduce((duration, clip) => Math.max(duration, clip.duration), 0);
-      if (scrubClips.length && animationDuration) {
+      scrubDuration = Math.min(animationDuration, HERO_SCRUB_FRAMES / HERO_ANIMATION_FPS);
+      if (scrubClips.length && scrubDuration) {
         mixer = new THREE.AnimationMixer(model);
         actions = scrubClips.map((clip) => {
           const action = mixer.clipAction(clip);
@@ -122,8 +126,8 @@ if (hero && stage) {
           action.play();
           return action;
         });
-        stage.dataset.heroAnimation = `${scrubClips.length}:${animationDuration.toFixed(2)}s`;
-        console.info('[hero-3d] Scrub animation clips:', scrubClips.map((clip) => clip.name || '(unnamed)'), 'duration:', animationDuration);
+        stage.dataset.heroAnimation = `${scrubClips.length}:${scrubDuration.toFixed(2)}s`;
+        console.info('[hero-3d] Scrub animation clips:', scrubClips.map((clip) => clip.name || '(unnamed)'), 'duration:', scrubDuration, 'source duration:', animationDuration);
       } else {
         stage.dataset.heroAnimation = 'none';
         console.warn('[hero-3d] No non-camera animation clips found in GLB.');
@@ -131,7 +135,7 @@ if (hero && stage) {
 
       console.info('[hero-3d] Active GLB camera:', sourceCamera.name || '(unnamed)');
       resize();
-      render();
+      requestRender();
     },
     undefined,
     (error) => {
@@ -141,6 +145,6 @@ if (hero && stage) {
     }
   );
 
-  window.addEventListener('scroll', updateFromScroll, { passive: true });
+  window.addEventListener('scroll', requestRender, { passive: true });
   window.addEventListener('resize', resize);
 }
