@@ -20,9 +20,8 @@ if (hero && stage) {
   stage.appendChild(renderer.domElement);
 
   let camera;
-  let startPosition;
-  let endPosition;
-  let startQuaternion;
+  let mixer;
+  let cameraClip;
   let targetProgress = 0;
   let displayedProgress = 0;
   let animationFrame = 0;
@@ -48,9 +47,11 @@ if (hero && stage) {
 
   function render() {
     if (!camera) return;
-    const eased = displayedProgress * displayedProgress * (3 - 2 * displayedProgress);
-    camera.position.lerpVectors(startPosition, endPosition, eased);
-    camera.quaternion.copy(startQuaternion);
+    if (mixer && cameraClip) {
+      const animationTime = displayedProgress * cameraClip.duration;
+      mixer.setTime(animationTime);
+      stage.dataset.heroAnimationTime = animationTime.toFixed(3);
+    }
     camera.updateMatrixWorld();
     renderer.render(scene, camera);
   }
@@ -70,20 +71,6 @@ if (hero && stage) {
   function updateFromScroll() {
     targetProgress = getProgress();
     if (!animationFrame) animationFrame = requestAnimationFrame(animateCamera);
-  }
-
-  function createCamera(source) {
-    if (source.isPerspectiveCamera) {
-      const result = new THREE.PerspectiveCamera(source.fov, source.aspect, source.near, source.far);
-      result.position.copy(source.getWorldPosition(new THREE.Vector3()));
-      result.quaternion.copy(source.getWorldQuaternion(new THREE.Quaternion()));
-      return result;
-    }
-    const result = source.clone();
-    result.position.copy(source.getWorldPosition(new THREE.Vector3()));
-    result.quaternion.copy(source.getWorldQuaternion(new THREE.Quaternion()));
-    result.parent = null;
-    return result;
   }
 
   function createFallbackCamera(bounds) {
@@ -118,30 +105,36 @@ if (hero && stage) {
       });
       stage.dataset.heroStatus = `loaded:${gltf.cameras.length}`;
       console.info('[hero-3d] GLB loaded:', 'assets/site test.glb');
+      console.info('[hero-3d] Cameras:', gltf.cameras.map((item) => item.name || '(unnamed)'));
+      console.info('[hero-3d] Animation clips:', gltf.animations.map((item) => item.name || '(unnamed)'));
 
       const sourceCamera = gltf.cameras?.[0] || model.getObjectByProperty('isCamera', true);
       const bounds = new THREE.Box3().setFromObject(model);
       const sphere = bounds.getBoundingSphere(new THREE.Sphere());
-      camera = sourceCamera ? createCamera(sourceCamera) : createFallbackCamera(bounds);
+      camera = sourceCamera || createFallbackCamera(bounds);
       if (!sourceCamera) {
         stage.dataset.heroStatus = 'loaded:fallback-camera';
         console.info('[hero-3d] No Blender camera found; using fallback PerspectiveCamera.');
+      } else {
+        stage.dataset.heroStatus = `loaded:camera:${sourceCamera.name || 'unnamed'}`;
       }
-      scene.add(camera);
       camera.updateMatrixWorld(true);
-      startPosition = camera.position.clone();
-      startQuaternion = camera.quaternion.clone();
       stage.dataset.heroBounds = `${sphere.center.x.toFixed(2)},${sphere.center.y.toFixed(2)},${sphere.center.z.toFixed(2)},${sphere.radius.toFixed(2)}`;
-      stage.dataset.heroCamera = `${startPosition.x.toFixed(2)},${startPosition.y.toFixed(2)},${startPosition.z.toFixed(2)}`;
-      const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(startQuaternion).normalize();
-      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(startQuaternion).normalize();
-      const travelDistance = Math.max(sphere.radius * 3.4, 8);
-      const sideDrift = Math.min(Math.max(sphere.radius * 0.055, 0.08), 0.45);
-      endPosition = startPosition.clone().addScaledVector(forward, travelDistance).addScaledVector(right, sideDrift);
+      const cameraAnimation = gltf.animations.find((clip) => clip.tracks.some((track) => track.name.startsWith(`${sourceCamera?.name || ''}.`)));
+      cameraClip = cameraAnimation || null;
+      if (cameraClip) {
+        mixer = new THREE.AnimationMixer(model);
+        mixer.clipAction(cameraClip).play();
+        stage.dataset.heroAnimation = `${cameraClip.name || 'unnamed'}:${cameraClip.duration.toFixed(2)}s`;
+        console.info('[hero-3d] Camera animation:', cameraClip.name || '(unnamed)', 'duration:', cameraClip.duration);
+      } else {
+        stage.dataset.heroAnimation = 'none';
+        console.warn('[hero-3d] No animation clip found for camera:', sourceCamera?.name || '(fallback)');
+      }
 
       targetProgress = getProgress();
       displayedProgress = targetProgress;
-      console.info('[hero-3d] Camera:', sourceCamera ? 'Blender camera' : 'fallback', 'bounds:', stage.dataset.heroBounds);
+      console.info('[hero-3d] Active camera:', sourceCamera ? sourceCamera.name : 'fallback', 'bounds:', stage.dataset.heroBounds);
       resize();
       render();
     },
