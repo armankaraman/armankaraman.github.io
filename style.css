@@ -43,7 +43,8 @@ main{position:relative;z-index:1}
 .container{max-width:1320px;margin:0 auto;padding:0 48px}
 .container.narrow{max-width:1040px}
 .about-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:48px;align-items:start}
-.about-portrait{width:100%;max-width:220px;aspect-ratio:3 / 4;object-fit:cover;display:block;border-radius:var(--radius);filter:grayscale(1)}
+.about-portrait{width:100%;max-width:220px;aspect-ratio:3 / 4;object-fit:cover;display:block;border-radius:var(--radius);filter:grayscale(1);transition:filter .25s ease}
+.about-portrait:hover{filter:grayscale(0)}
 h2{font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;margin:0 0 32px;color:var(--muted)}
 .muted{color:var(--muted)}
 
