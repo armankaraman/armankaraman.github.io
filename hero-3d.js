@@ -1,5 +1,6 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/environments/RoomEnvironment.js';
 
 const hero = document.querySelector('.hero-full');
 const stage = document.querySelector('.hero-stage');
@@ -10,6 +11,7 @@ const HERO_CAMERA_VISUAL_SCALE = 0.6;
 const HERO_END_ZOOM = 1.08;
 const HERO_END_ZOOM_START = 0.82;
 const HERO_SHADOW_OPACITY = 0.34;
+const HERO_CHROME_ENV_INTENSITY = 1.35;
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
@@ -29,6 +31,20 @@ if (hero && stage) {
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   stage.appendChild(renderer.domElement);
+
+  const pmremGenerator = new THREE.PMREMGenerator(renderer);
+  const studioEnvironment = new RoomEnvironment(renderer);
+  const studioEnvironmentMap = pmremGenerator.fromScene(studioEnvironment, 0.04).texture;
+  scene.environment = studioEnvironmentMap;
+  studioEnvironment.dispose();
+  pmremGenerator.dispose();
+
+  const chromeMaterial = new THREE.MeshStandardMaterial({
+    color: 0xd8dadd,
+    metalness: 1,
+    roughness: 0.16,
+    envMapIntensity: HERO_CHROME_ENV_INTENSITY
+  });
 
   let camera;
   let mixer;
@@ -140,6 +156,7 @@ if (hero && stage) {
       } else {
         object.castShadow = true;
         object.receiveShadow = false;
+        object.material = chromeMaterial;
       }
     });
   }
