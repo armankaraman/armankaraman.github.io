@@ -17,6 +17,7 @@ const HERO_ENV_ROTATION_TILT = 0.18;
 const HERO_SCRUB_DAMPING = 5.2;
 const HERO_SCRUB_EPSILON = 0.00018;
 const HERO_MOTION_EASE_WEIGHT = 0.38;
+const HERO_MOBILE_QUERY = '(max-width: 640px), (pointer: coarse)';
 
 if (hero && stage) {
   stage.dataset.heroStatus = 'loading';
@@ -25,10 +26,9 @@ if (hero && stage) {
   const keyLight = new THREE.DirectionalLight(0xffffff, 1.65);
   keyLight.position.set(4, 8, 6);
   keyLight.castShadow = true;
-  keyLight.shadow.mapSize.set(2048, 2048);
+  const mobileMedia = window.matchMedia(HERO_MOBILE_QUERY);
   scene.add(keyLight);
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
   renderer.setClearColor(0x111111, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -107,9 +107,23 @@ if (hero && stage) {
   const cameraForward = new THREE.Vector3();
   const cameraDown = new THREE.Vector3();
 
+  function configureRenderQuality() {
+    const maxPixelRatio = mobileMedia.matches ? 1.2 : 1.5;
+    const shadowMapSize = mobileMedia.matches ? 1024 : 2048;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, maxPixelRatio));
+    if (keyLight.shadow.mapSize.width !== shadowMapSize) {
+      keyLight.shadow.mapSize.set(shadowMapSize, shadowMapSize);
+      keyLight.shadow.map?.dispose();
+      keyLight.shadow.map = null;
+    }
+  }
+
+  configureRenderQuality();
+
   function getProgress() {
     const heroTop = hero.offsetTop;
-    const travel = Math.max(1, hero.offsetHeight - window.innerHeight);
+    const viewportHeight = stage.clientHeight || window.innerHeight;
+    const travel = Math.max(1, hero.offsetHeight - viewportHeight);
     return THREE.MathUtils.clamp((window.scrollY - heroTop) / travel, 0, 1);
   }
 
@@ -189,6 +203,7 @@ if (hero && stage) {
     const height = stage.clientHeight;
     if (!width || !height || !camera) return;
 
+    configureRenderQuality();
     renderer.setSize(width, height, false);
     if (camera.isPerspectiveCamera) {
       camera.aspect = width / height;
