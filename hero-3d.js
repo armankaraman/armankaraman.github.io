@@ -5,15 +5,14 @@ const hero = document.querySelector('.hero-full');
 const stage = document.querySelector('.hero-stage');
 const HERO_GLB_PATH = 'assets/site test.glb';
 const HERO_CAMERA_VISUAL_SCALE = 0.6;
-const HERO_END_ZOOM = 1.1;
-const HERO_END_PUSH_START = 0.56;
-const HERO_END_FLY_DISTANCE = 0.28;
-const HERO_END_DROP_DISTANCE = 0.14;
+const HERO_END_ZOOM = 1.18;
+const HERO_END_FLY_DISTANCE = 0.34;
+const HERO_END_DROP_DISTANCE = 0.16;
 const HERO_SHADOW_OPACITY = 0.34;
 const HERO_CHROME_ENV_INTENSITY = 2.65;
 const HERO_ENV_ROTATION_TURNS = 0.85;
 const HERO_ENV_ROTATION_TILT = 0.18;
-const HERO_SCRUB_DAMPING = 10;
+const HERO_SCRUB_DAMPING = 8;
 const HERO_SCRUB_EPSILON = 0.00035;
 
 if (hero && stage) {
@@ -128,9 +127,13 @@ if (hero && stage) {
     return amount * amount * amount * (amount * (amount * 6 - 15) + 10);
   }
 
+  function getMotionProgress() {
+    return smootherstep(displayedProgress);
+  }
+
   function scrubAnimation() {
     if (!mixer || !scrubDuration) return;
-    const animationTime = displayedProgress * scrubDuration;
+    const animationTime = getMotionProgress() * scrubDuration;
     actions.forEach((action) => {
       action.enabled = true;
       action.paused = false;
@@ -141,8 +144,7 @@ if (hero && stage) {
 
   function updateEndPush() {
     if (!camera || (!camera.isPerspectiveCamera && !camera.isOrthographicCamera)) return;
-    const pushAmount = THREE.MathUtils.clamp((displayedProgress - HERO_END_PUSH_START) / (1 - HERO_END_PUSH_START), 0, 1);
-    const pushProgress = smootherstep(pushAmount);
+    const pushProgress = getMotionProgress();
     cameraForward.set(0, 0, -1).applyQuaternion(baseCameraQuaternion);
     cameraDown.set(0, -1, 0).applyQuaternion(baseCameraQuaternion);
     camera.position
@@ -154,9 +156,10 @@ if (hero && stage) {
   }
 
   function updateEnvironmentReflection() {
+    const reflectionProgress = getMotionProgress();
     chromeMaterial.envMapRotation.set(
-      Math.sin(displayedProgress * Math.PI) * HERO_ENV_ROTATION_TILT,
-      displayedProgress * Math.PI * 2 * HERO_ENV_ROTATION_TURNS,
+      Math.sin(reflectionProgress * Math.PI) * HERO_ENV_ROTATION_TILT,
+      reflectionProgress * Math.PI * 2 * HERO_ENV_ROTATION_TURNS,
       0
     );
   }
