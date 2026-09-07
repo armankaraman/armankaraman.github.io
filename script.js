@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dot.setAttribute('aria-label', `Show ${project.title}`);
       dot.addEventListener('click', () => {
         const range = section.offsetHeight - section.querySelector('.gallery-sticky').offsetHeight;
-        window.scrollTo({top: section.offsetTop + ((index + 0.5) / items.length) * range, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
+        window.scrollTo({top: section.offsetTop + ((index + 0.5) / items.length) * range, behavior: 'instant'});
       });
       pagination.append(dot);
       return dot;
@@ -100,7 +100,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const {section, cards, dots, counter, videos} = gallery;
       const {top, range, rect, width, stageWidth} = layouts[galleryIndex];
       // Half a step at either end holds the first and last projects in the centre.
-      const target = clamp((window.scrollY - top) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1);
+      const target = Math.round(clamp((window.scrollY - top) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1));
+      gallery.target = target;
       const outside = rect.bottom <= 0 || rect.top >= innerHeight;
       if (gallery.progress === undefined || reducedMotion.matches || outside) gallery.progress = target;
       else gallery.progress += (target - gallery.progress) * blend;
@@ -115,7 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const x = distance * (width + gap);
         const depth = -100 * (Math.sqrt(distance * distance + 0.16) - 0.4);
         const angle = 28 * Math.tanh(distance * 1.35);
-        card.style.transform = `translate3d(${x}px,0,${depth}px) rotateY(${angle}deg)`;
+        const scale = 0.86 + 0.24 * Math.exp(-3 * distance * distance);
+        card.style.transform = `translate3d(${x}px,0,${depth}px) rotateY(${angle}deg) scale(${scale})`;
         card.style.zIndex = String(10 - Math.round(Math.abs(distance)));
         card.classList.toggle('is-active', index === active);
         const visible = Math.abs(x) < stageWidth / 2 + width;
@@ -202,6 +204,80 @@ document.addEventListener('DOMContentLoaded', () => {
   createGallery('projects', projects);
   createGallery('static-projects', staticProjects);
   createGallery('three-d-projects', threeDProjects.slice(0, 6), true);
+  // One physical gesture selects one project. Trackpad inertia belongs to that
+  // gesture, rather than selecting more projects on every wheel event.
+  let stepBusyUntil = 0;
+  let lastWheelAt = -Infinity;
+  function pinnedGallery() {
+    return galleries.find(({section}) => {
+      const start = section.offsetTop;
+      const end = start + section.offsetHeight - section.firstElementChild.offsetHeight;
+      return scrollY >= start - 2 && scrollY <= end + 2;
+    });
+  }
+  function stepGallery(gallery, direction) {
+    const now = performance.now();
+    if (now < stepBusyUntil) return;
+    const {section, cards} = gallery;
+    const range = section.offsetHeight - section.firstElementChild.offsetHeight;
+    const current = Math.round(clamp((scrollY - section.offsetTop) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1));
+    const next = current + direction;
+    stepBusyUntil = now + (reducedMotion.matches ? 180 : 700);
+    if (next >= 0 && next < cards.length) {
+      // The pinned scene stays in place; its renderer animates to this index.
+      scrollTo({top: section.offsetTop + (next + 0.5) * range / cards.length, behavior: 'instant'});
+    } else {
+      const adjacent = galleries[galleries.indexOf(gallery) + direction];
+      const destination = adjacent
+        ? direction > 0 ? adjacent.section.offsetTop : adjacent.section.offsetTop + adjacent.section.offsetHeight - adjacent.section.firstElementChild.offsetHeight
+        : direction > 0 ? section.offsetTop + section.offsetHeight : 0;
+      scrollTo({top: destination, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
+    }
+  }
+  window.addEventListener('wheel', event => {
+    if (modalOpen || event.ctrlKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    const gallery = pinnedGallery();
+    const now = performance.now();
+    if (!gallery && now >= stepBusyUntil) return;
+    event.preventDefault();
+    const newGesture = now - lastWheelAt > 180;
+    lastWheelAt = now;
+    if (gallery && newGesture) stepGallery(gallery, Math.sign(event.deltaY));
+  }, {passive: false});
+  let touchGesture = null;
+  let suppressClickUntil = 0;
+  window.addEventListener('touchstart', event => {
+    touchGesture = !modalOpen && event.touches.length === 1
+      ? {gallery: pinnedGallery(), x: event.touches[0].clientX, y: event.touches[0].clientY, stepped: false}
+      : null;
+  }, {passive: true});
+  window.addEventListener('touchmove', event => {
+    if (!touchGesture?.gallery || modalOpen || event.touches.length !== 1) return;
+    const dy = touchGesture.y - event.touches[0].clientY;
+    const dx = touchGesture.x - event.touches[0].clientX;
+    if (!touchGesture.stepped && (Math.abs(dy) < 6 || Math.abs(dx) > Math.abs(dy))) return;
+    event.preventDefault();
+    suppressClickUntil = performance.now() + 500;
+    if (!touchGesture.stepped) {
+      touchGesture.stepped = true;
+      stepGallery(touchGesture.gallery, Math.sign(dy));
+    }
+  }, {passive: false});
+  window.addEventListener('touchend', () => { touchGesture = null; }, {passive: true});
+  window.addEventListener('touchcancel', () => { touchGesture = null; }, {passive: true});
+  document.addEventListener('click', event => {
+    if (performance.now() < suppressClickUntil && event.target.closest('.perspective-card')) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+  }, true);
+  document.addEventListener('keydown', event => {
+    if (modalOpen || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('button,a,input,textarea,select,video')) return;
+    const direction = ['ArrowDown', 'PageDown', ' '].includes(event.key) ? (event.shiftKey ? -1 : 1)
+      : ['ArrowUp', 'PageUp'].includes(event.key) ? -1 : 0;
+    const gallery = pinnedGallery();
+    if (direction && gallery) { event.preventDefault(); stepGallery(gallery, direction); }
+  });
   let queued = false;
   function scheduleUpdate() {
     if (queued) return;
