@@ -81,14 +81,9 @@
     new ResizeObserver(updateTarget).observe(document.documentElement);
   }
 
-  // Preserve the original buffering route for servers without HTTP Range support.
-  fetch(video.dataset.src)
-    .then(response => {
-      if (!response.ok) throw new Error('Background video unavailable');
-      return response.blob();
-    })
-    .then(blob => { video.src = URL.createObjectURL(blob); })
-    .catch(() => { video.src = video.dataset.src; });
+  // Load the real video immediately so the first visible frame is frame 0, not a poster image.
+  video.src = video.dataset.src;
+  video.currentTime = 0;
 
   video.muted = true;
   video.playsInline = true;
