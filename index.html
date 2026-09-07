@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Arman Karaman — Motion Designer • 3D • AI Visuals</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260904-6">
+  <link rel="stylesheet" href="style.css?v=20260907-1">
   <script type="importmap">
     {
       "imports": {
@@ -22,7 +22,8 @@
         <span class="brand-tagline">Motion design, 3D, AI Visuals</span>
       </div>
       <nav class="nav">
-        <a href="#work">Work</a>
+        <a href="#work">Motion</a>
+        <a href="#stills">Stills</a>
         <a href="#3d">3D</a>
         <a href="#about">About</a>
         <a href="#contact">Contact</a>
@@ -39,16 +40,25 @@
       </div>
     </section>
 
-    <section id="work" class="section">
-      <div class="container">
-        <h2>Selected Work</h2>
-        <div class="grid large" id="projects"></div>
+    <section id="work" class="section scroll-gallery" aria-label="Motion projects">
+      <div class="gallery-sticky">
+        <div class="container gallery-heading"><h2>01 / Motion</h2><p>6 projects</p></div>
+        <div class="perspective-stage" id="projects"></div>
+        <div class="gallery-footer container"></div>
+      </div>
+    </section>
+
+    <section id="stills" class="section scroll-gallery" aria-label="Static projects">
+      <div class="gallery-sticky">
+        <div class="container gallery-heading"><h2>02 / Stills</h2><p>4 projects</p></div>
+        <div class="perspective-stage" id="static-projects"></div>
+        <div class="gallery-footer container"></div>
       </div>
     </section>
 
     <section id="3d" class="section slim">
       <div class="container">
-        <h2>3D Models</h2>
+        <h2>03 / 3D Models</h2>
         <div class="grid character-grid" id="three-d-projects"></div>
       </div>
     </section>
@@ -95,13 +105,13 @@
     </section>
   </main>
 
-  <div id="lightbox" class="lightbox" aria-hidden="true">
+  <div id="lightbox" class="lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="project-dialog-title" inert>
     <button class="close" aria-label="Close">✕</button>
     <div class="lightbox-content">
       <div class="lightbox-media"></div>
       <aside class="lightbox-info">
         <p class="lightbox-category"></p>
-        <h2 class="lightbox-title"></h2>
+        <h2 class="lightbox-title" id="project-dialog-title"></h2>
         <p class="lightbox-year"></p>
         <p class="lightbox-description"></p>
         <a class="lightbox-link" target="_blank" rel="noopener">View project</a>
@@ -109,8 +119,10 @@
     </div>
   </div>
 
-  <script src="projects.js?v=20260904-2"></script>
-  <script src="script.js?v=20260904-2"></script>
+  <script src="projects.js?v=20260907-1"></script>
+  <script src="static-projects.js"></script>
+  <script src="3d-projects.js"></script>
+  <script src="script.js?v=20260907-1"></script>
   <script type="module" src="hero-3d.js?v=20260904-25"></script>
 </body>
 </html>

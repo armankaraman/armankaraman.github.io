@@ -66,7 +66,3 @@ const projects = [
     gallery: []
   }
 ];
-
-document.write('<script src="3d-projects.js"><\/script>');
-document.write('<script src="motion-projects.js"><\/script>');
-
