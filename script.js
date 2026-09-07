@@ -454,6 +454,34 @@ document.addEventListener('DOMContentLoaded', () => {
       event.stopPropagation();
     }
   }, true);
+  // A wheel gesture advances one section. Tall sections remain readable before leaving.
+  const pageSections = [...document.querySelectorAll('main > .section')];
+  let lastSectionWheel = -Infinity;
+  let sectionBusyUntil = 0;
+  window.addEventListener('wheel', event => {
+    if (modalOpen || event.ctrlKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+    if (event.target.closest('textarea, input, select, iframe, object')) return;
+    const now = performance.now();
+    const fresh = now - lastSectionWheel > 200;
+    lastSectionWheel = now;
+    const headerHeight = header.offsetHeight;
+    const maxScroll = document.documentElement.scrollHeight - innerHeight;
+    const positions = pageSections.map(section => Math.min(maxScroll, Math.max(0, section.offsetTop - (section.classList.contains('scroll-gallery') ? 0 : headerHeight))));
+    let index = positions.findLastIndex(top => top <= scrollY + 3);
+    index = Math.max(0, index);
+    const direction = Math.sign(event.deltaY);
+    if (now < sectionBusyUntil) { event.preventDefault(); return; }
+    const section = pageSections[index];
+    const bottom = section.offsetTop + section.offsetHeight;
+    const canReadMore = direction > 0 ? scrollY + innerHeight < bottom - 3 : scrollY > positions[index] + 3;
+    if (canReadMore && section.offsetHeight > innerHeight - headerHeight + 3 && !section.classList.contains('scroll-gallery')) return;
+    event.preventDefault();
+    if (!fresh) return;
+    const next = clamp(index + direction, 0, pageSections.length - 1);
+    if (next === index) return;
+    sectionBusyUntil = now + (reducedMotion.matches ? 100 : 850);
+    scrollTo({top: positions[next], behavior: reducedMotion.matches ? 'instant' : 'smooth'});
+  }, {passive: false});
   let queued = false;
   function scheduleUpdate() {
     if (queued) return;

@@ -84,7 +84,7 @@ h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacin
 .muted-small { color: var(--muted); font-size: 13px; }
 html { scrollbar-gutter: stable; }
 .scroll-gallery { padding: 0px; height: auto; }
-.gallery-sticky { position: relative; top: auto; height: 100svh; min-height: 540px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.gallery-sticky { position: relative; top: auto; height: calc(100svh - 1px); min-height: 540px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
 .gallery-heading { text-align: center; width: 100%; padding-top: 32px; padding-bottom: 20px; }
 .gallery-heading h2 { margin: 0px; color: var(--text); font-size: 18px; font-weight: 400; letter-spacing: 0.15em; }
 .gallery-heading p { margin: 5px 0px 0px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; }
@@ -162,3 +162,9 @@ button:focus-visible, a:focus-visible { outline: 2px solid var(--text); outline-
 .gallery-arrow { flex: 0 0 42px; width: 42px; height: 42px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); color: var(--text); font-size: 22px; cursor: pointer; }
 .gallery-arrow:disabled { opacity: 0.3; cursor: default; }
 .gallery-arrow:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+
+html { scroll-snap-type: y mandatory; scroll-padding-top: 0; }
+main > .section { scroll-snap-align: start; scroll-snap-stop: always; }
+.scroll-gallery { scroll-margin-top: 0; }
+.section:not(.scroll-gallery) { scroll-margin-top: var(--header-height, 80px); min-height: calc(100svh - var(--header-height, 80px)); }
+.experience-block { margin-top: 48px; }
