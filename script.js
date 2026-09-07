@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+  const i18n = window.portfolioI18n;
+  const tr = (key, vars) => i18n?.t(key, vars) ?? key;
+  const projectText = (project, field) => i18n?.projectField(project, field) ?? project?.[field] ?? '';
   const header = document.querySelector('.site-header');
   const measureHeader = () => document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
   measureHeader();
@@ -84,11 +87,11 @@ document.addEventListener('DOMContentLoaded', () => {
   };
   function makeMedia(item, title, preview = false) {
     const data = mediaData(item);
-    if (!data?.src) return el('div', 'media-placeholder', 'Preview placeholder — image to be added');
+    if (!data?.src) return el('div', 'media-placeholder', tr('previewPlaceholder'));
     if (data.type === 'pdf') {
-      if (preview) return el('div', 'media-placeholder', 'PDF document');
+      if (preview) return el('div', 'media-placeholder', tr('pdfDocument'));
       const wrapper = el('div', 'pdf-media');
-      const link = el('a', 'pdf-link', 'Open PDF');
+      const link = el('a', 'pdf-link', tr('openPdf'));
       link.href = data.src;
       link.target = '_blank';
       link.rel = 'noopener';
@@ -96,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
       viewer.type = 'application/pdf';
       viewer.data = data.src;
       viewer.setAttribute('aria-label', `${title} PDF`);
-      viewer.append(el('p', '', 'Use Open PDF to view this document.'));
+      viewer.append(el('p', '', tr('pdfFallback')));
       wrapper.append(link, viewer);
       return wrapper;
     }
@@ -118,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (video && variant?.preview && node.getAttribute('src') === variant.preview) {
         node.src = data.src;
         if (node.dataset.playing === 'true') node.play().catch(() => { node.dataset.playing = 'false'; });
-      } else node.replaceWith(el('div', 'media-placeholder', 'Media unavailable — file to be added'));
+      } else node.replaceWith(el('div', 'media-placeholder', tr('mediaUnavailable')));
     });
     return node;
   }
@@ -126,13 +129,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewJobs = [];
     const stage = document.getElementById(id);
     const section = stage.closest('.scroll-gallery');
-    section.querySelector('.gallery-heading p').textContent = `${items.length} ${modelGallery ? 'models' : 'projects'}`;
+    const headingCount = section.querySelector('.gallery-heading p');
+    const updateHeadingCount = () => { headingCount.textContent = i18n?.count(modelGallery ? 'models' : 'projects', items.length) ?? `${items.length}`; };
+    updateHeadingCount();
     const pagination = el('div', 'gallery-pagination');
     const counter = el('span', 'gallery-counter');
     const dots = items.map((project, index) => {
       const dot = el('button', 'gallery-dot');
       dot.type = 'button';
-      dot.setAttribute('aria-label', `Show ${project.title}`);
+      dot.setAttribute('aria-label', tr('showProject', {title: projectText(project, 'title')}));
       dot.addEventListener('click', () => {
         galleries.find(gallery => gallery.section === section).selectedIndex = index;
         scheduleUpdate();
@@ -143,29 +148,29 @@ document.addEventListener('DOMContentLoaded', () => {
     pagination.append(counter);
     const previous = el('button', 'gallery-arrow', '\u2190');
     const next = el('button', 'gallery-arrow', '\u2192');
-    for (const [button, direction, label] of [[previous, -1, 'Previous project'], [next, 1, 'Next project']]) {
+    for (const [button, direction, labelKey] of [[previous, -1, 'previousProject'], [next, 1, 'nextProject']]) {
       button.type = 'button';
-      button.setAttribute('aria-label', label);
+      button.setAttribute('aria-label', tr(labelKey));
       button.addEventListener('click', () => stepGallery(galleries.find(gallery => gallery.section === section), direction));
     }
     section.querySelector('.gallery-footer').append(previous, pagination, next);
     const cards = items.map((project, index) => {
       const card = el('button', 'perspective-card');
       card.type = 'button';
-      card.setAttribute('aria-label', `Open ${project.title}`);
+      card.setAttribute('aria-label', tr('openCard', {title: projectText(project, 'title')}));
       const visual = el('div', 'card-preview');
       if (modelGallery && !project.preview) {
-        visual.append(el('div', 'media-placeholder', '3D preview unavailable'));
+        visual.append(el('div', 'media-placeholder', tr('preview3dUnavailable')));
         previewJobs.push(() => fetchWithTimeout(`https://sketchfab.com/oembed?url=${encodeURIComponent(project.sketchfab)}&format=json`)
           .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
-          .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, project.title, true)); }).catch(() => {}));
-      } else visual.append(makeMedia(modelGallery ? project.preview : project.media, project.title, true));
+          .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, projectText(project, 'title'), true)); }).catch(() => {}));
+      } else visual.append(makeMedia(modelGallery ? project.preview : project.media, projectText(project, 'title'), true));
       const copy = el('div', 'card-copy');
-      copy.append(el('h3', '', project.title), el('p', 'card-category', project.category), el('p', 'card-description', project.description), el('span', 'project-open', 'View project ↗'));
+      copy.append(el('h3', '', projectText(project, 'title')), el('p', 'card-category', projectText(project, 'category')), el('p', 'card-description', projectText(project, 'description')), el('span', 'project-open', tr('viewProject')));
       card.append(visual, copy);
       if (modelGallery) {
         copy.querySelector('.card-category').textContent = '3D';
-        copy.querySelector('.project-open').textContent = 'View model';
+        copy.querySelector('.project-open').textContent = tr('viewModel');
       }
       let resolveMain;
       if (!modelGallery && project.autoMedia) {
@@ -179,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
               const response = await fetchWithTimeout(src, {method: 'HEAD'});
               if (!response.ok || response.headers.get('content-type')?.includes('text/html')) continue;
               project.media = src;
-              visual.replaceChildren(makeMedia(src, project.title, true));
+              visual.replaceChildren(makeMedia(src, projectText(project, 'title'), true));
               const gallery = galleries.find(item => item.stage === stage);
               gallery.videos[index] = visual.querySelector('video');
               gallery.lastInView = undefined;
@@ -206,7 +211,21 @@ document.addEventListener('DOMContentLoaded', () => {
       stage.append(card);
       return card;
     });
-    galleries.push({section, stage, cards, dots, counter, previous, next, selectedIndex: 0, videos: cards.map(card => card.querySelector('video'))});
+    const refreshLanguage = () => {
+      updateHeadingCount();
+      cards.forEach((card, index) => {
+        const project = items[index];
+        card.setAttribute('aria-label', tr('openCard', {title: projectText(project, 'title')}));
+        dots[index].setAttribute('aria-label', tr('showProject', {title: projectText(project, 'title')}));
+        card.querySelector('.card-copy h3').textContent = projectText(project, 'title');
+        card.querySelector('.card-category').textContent = modelGallery ? '3D' : projectText(project, 'category');
+        card.querySelector('.card-description').textContent = projectText(project, 'description');
+        card.querySelector('.project-open').textContent = modelGallery ? tr('viewModel') : tr('viewProject');
+      });
+      previous.setAttribute('aria-label', tr('previousProject'));
+      next.setAttribute('aria-label', tr('nextProject'));
+    };
+    galleries.push({section, stage, cards, dots, counter, previous, next, selectedIndex: 0, videos: cards.map(card => card.querySelector('video')), items, modelGallery, refreshLanguage});
     if (previewJobs.length) {
       const observer = new IntersectionObserver(entries => {
         if (!entries.some(entry => entry.isIntersecting)) return;
@@ -309,6 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
     galleryDiscovery = new AbortController();
     const discoverySignal = galleryDiscovery.signal;
     opener = trigger;
+    activeProject = project;
     savedScroll = scrollY;
     bodyStyle = document.body.getAttribute('style');
     modalOpen = true;
@@ -320,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
     lbMedia.append(active);
     function select(index) {
       releaseMedia(active);
-      active.replaceChildren(makeMedia(items[index], project.title));
+      active.replaceChildren(makeMedia(items[index], projectText(project, 'title')));
       active.querySelector('video')?.play().catch(() => {});
       [...navigation.children].forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
     }
@@ -328,19 +348,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = mediaData(item);
       const button = el('button', 'lightbox-gallery-item');
       button.type = 'button';
-      button.setAttribute('aria-label', `${project.title}, media ${index + 1}`);
+      button.setAttribute('aria-label', tr('mediaLabel', {title: projectText(project, 'title'), number: index + 1}));
       button.setAttribute('aria-pressed', String(index === 0));
       const variant = typeof mediaVariants !== 'undefined' ? mediaVariants[data.src] : null;
-      const thumbnail = makeMedia(variant?.poster ? {src: variant.poster, type: 'image'} : data, project.title, true);
+      const thumbnail = makeMedia(variant?.poster ? {src: variant.poster, type: 'image'} : data, projectText(project, 'title'), true);
       if (thumbnail.tagName === 'VIDEO') thumbnail.preload = 'metadata';
       button.append(thumbnail);
-      if (data.type === 'video') button.append(el('span', 'thumbnail-label', index === 0 ? 'Main video' : 'Video'));
+      if (data.type === 'video') button.append(el('span', 'thumbnail-label', index === 0 ? tr('mainVideo') : tr('video')));
       button.addEventListener('click', () => select(index));
       navigation.append(button);
     }
     if (project.sketchfab) {
       const viewer = el('iframe', 'sketchfab-viewer');
-      viewer.title = `${project.title} — interactive 3D model`;
+      viewer.title = tr('interactiveModel', {title: projectText(project, 'title')});
       viewer.allow = 'autoplay; fullscreen; xr-spatial-tracking';
       viewer.allowFullscreen = true;
       const embedUrl = new URL(project.sketchfab);
@@ -353,8 +373,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lbMedia.append(navigation);
       }
       select(0);
-    } else active.append(makeMedia(null, project.title));
-    for (const [selector, value] of Object.entries({'.lightbox-category': project.category || (project.sketchfab ? '3D' : ''), '.lightbox-title': project.title, '.lightbox-year': project.year, '.lightbox-description': project.description})) lightbox.querySelector(selector).textContent = value || '';
+    } else active.append(makeMedia(null, projectText(project, 'title')));
+    for (const [selector, value] of Object.entries({'.lightbox-category': projectText(project, 'category') || (project.sketchfab ? '3D' : ''), '.lightbox-title': projectText(project, 'title'), '.lightbox-year': project.year, '.lightbox-description': projectText(project, 'description')})) lightbox.querySelector(selector).textContent = value || '';
     const link = lightbox.querySelector('.lightbox-link');
     let externalLink = project.link;
     if (project.sketchfab) {
@@ -363,7 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
       modelUrl.search = '';
       externalLink = modelUrl.href;
     }
-    link.textContent = project.sketchfab ? 'Open on Sketchfab ↗' : 'View project';
+    link.textContent = project.sketchfab ? tr('openSketchfab') : tr('openProject');
     link.classList.toggle('is-visible', Boolean(externalLink));
     if (externalLink) link.href = externalLink;
     else link.removeAttribute('href');
@@ -397,10 +417,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('main').inert = document.querySelector('header').inert = false;
     window.scrollTo({top: savedScroll, behavior: 'instant'});
     modalOpen = false;
+    activeProject = null;
     galleries.forEach(gallery => { gallery.lastInView = undefined; });
     opener?.focus({preventScroll: true});
     updateGalleries();
   }
+  let activeProject = null;
   createGallery('projects', projects);
   createGallery('static-projects', staticProjects);
   createGallery('three-d-projects', threeDProjects.slice(0, 6), true);
@@ -496,6 +518,24 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('visibilitychange', () => {
     galleries.forEach(gallery => { gallery.lastInView = undefined; });
     if (document.hidden) updateGalleries(); else scheduleUpdate();
+  });
+  document.addEventListener('portfolio:languagechange', () => {
+    galleries.forEach(gallery => gallery.refreshLanguage?.());
+    closeButton.setAttribute('aria-label', tr('close'));
+    if (modalOpen && activeProject) {
+      lightbox.querySelector('.lightbox-category').textContent = projectText(activeProject, 'category') || (activeProject.sketchfab ? '3D' : '');
+      lightbox.querySelector('.lightbox-title').textContent = projectText(activeProject, 'title');
+      lightbox.querySelector('.lightbox-description').textContent = projectText(activeProject, 'description');
+      const link = lightbox.querySelector('.lightbox-link');
+      link.textContent = activeProject.sketchfab ? tr('openSketchfab') : tr('openProject');
+      const iframe = lightbox.querySelector('.sketchfab-viewer');
+      if (iframe) iframe.title = tr('interactiveModel', {title: projectText(activeProject, 'title')});
+      lightbox.querySelectorAll('.lightbox-gallery-item').forEach((button, index) => {
+        button.setAttribute('aria-label', tr('mediaLabel', {title: projectText(activeProject, 'title'), number: index + 1}));
+        const label = button.querySelector('.thumbnail-label');
+        if (label) label.textContent = index === 0 ? tr('mainVideo') : tr('video');
+      });
+    }
   });
   closeButton.addEventListener('click', closeGallery);
   lightbox.addEventListener('click', event => { if (event.target === lightbox) closeGallery(); });
