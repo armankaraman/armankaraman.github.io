@@ -10,9 +10,29 @@
   let position = 0;
   let frame = 0;
   let lastTime = 0;
+  let priming = false;
+  let primed = false;
 
   const modalOpen = () => lightbox?.getAttribute('aria-hidden') === 'false';
   const blocked = () => document.hidden || modalOpen();
+
+  // Mobile browsers may defer decoding a paused video until a user gesture.
+  // Start it once, then return control to the scroll position immediately.
+  function primeVideo() {
+    if (primed || priming || blocked()) return;
+    priming = true;
+    video.play().then(() => {
+      video.pause();
+      priming = false;
+      primed = true;
+      document.removeEventListener('touchstart', primeVideo);
+      document.removeEventListener('click', primeVideo);
+      updateTarget();
+    }).catch(() => {
+      priming = false;
+      // Keep the gesture listeners so a blocked attempt can be retried.
+    });
+  }
 
   function schedule() {
     if (!frame && !blocked()) frame = requestAnimationFrame(render);
@@ -33,7 +53,7 @@
 
   function render(now) {
     frame = 0;
-    if (!duration || blocked()) {
+    if (!duration || blocked() || priming) {
       lastTime = 0;
       return;
     }
@@ -44,8 +64,10 @@
 
     if (Math.abs(target - position) < 0.015) position = target;
 
-    if (!video.seeking && Math.abs(video.currentTime - position) > 0.001) {
-      video.currentTime = position;
+    // Seeking slightly into frame zero also asks mobile decoders to paint it.
+    const seekTime = Math.max(0.001, position);
+    if (!video.seeking && Math.abs(video.currentTime - seekTime) >= 0.001) {
+      video.currentTime = seekTime;
     }
 
     if (position !== target) schedule();
@@ -67,6 +89,8 @@
   window.addEventListener('scroll', updateTarget, {passive: true});
   window.addEventListener('resize', updateTarget);
   window.addEventListener('pageshow', updateTarget);
+  document.addEventListener('touchstart', primeVideo, {passive: true});
+  document.addEventListener('click', primeVideo);
   document.addEventListener('visibilitychange', updateTarget);
   reducedMotion.addEventListener('change', updateTarget);
 
@@ -82,13 +106,13 @@
   }
 
   // Load the real video immediately so the first visible frame is frame 0, not a poster image.
-  video.src = video.dataset.src;
-  video.currentTime = 0;
-
   video.muted = true;
+  video.defaultMuted = true;
   video.playsInline = true;
   video.loop = false;
   video.autoplay = false;
+  video.src = video.dataset.src;
+  video.load();
   video.pause();
   updateTarget();
 })();
