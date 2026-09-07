@@ -3,6 +3,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const measureHeader = () => document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
   measureHeader();
   new ResizeObserver(measureHeader).observe(header);
+  const portrait = document.querySelector('.about-portrait');
+  if (portrait) {
+    const portraitObserver = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) {
+        portrait.classList.add('is-visible');
+        portraitObserver.disconnect();
+      }
+    });
+    portraitObserver.observe(portrait);
+  }
   const lightbox = document.getElementById('lightbox');
   const lbMedia = lightbox.querySelector('.lightbox-media');
   const closeButton = lightbox.querySelector('.close');

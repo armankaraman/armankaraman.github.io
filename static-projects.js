@@ -1,4 +1,4 @@
-﻿// Просто положите still01.jpg … still05.jpg в папку assets.
+// Просто положите still01.jpg … still06.jpg в папку assets.
 // Если имя другое, укажите только имя файла в media, например 'poster.png'.
 // Дополнительные файлы находятся сами: still01-2.jpg, still01-3.mp4 и т. д.
 // Нумеруйте подряд с 2. gallery можно оставить пустым.
@@ -12,5 +12,7 @@ const staticProjects = [
   {id: 'still04', title: 'Still 04', category: 'Stills', media: 'still04.jpg',
     description: '', gallery: []},
   {id: 'still05', title: 'Still 05', category: 'Stills', media: 'still05.jpg',
+    description: '', gallery: []},
+  {id: 'still06', title: 'Still 06', category: 'Stills', media: 'still06.jpg',
     description: '', gallery: []}
 ];

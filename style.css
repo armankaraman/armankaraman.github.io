@@ -18,7 +18,7 @@ main { position: relative; z-index: 1; }
 .container.narrow { max-width: 1040px; }
 .about-layout { display: grid; grid-template-columns: 220px minmax(0px, 1fr); gap: 48px; align-items: start; }
 .about-portrait { width: 100%; max-width: 220px; aspect-ratio: 3 / 4; object-fit: cover; display: block; border-radius: var(--radius); filter: grayscale(1); transition: filter 0.25s; }
-.about-portrait:hover { filter: grayscale(0); }
+.about-portrait.is-visible { filter: grayscale(0); }
 h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin: 0px 0px 32px; color: var(--muted); }
 .muted { color: var(--muted); }
 .timeline { list-style: none; padding: 0px; margin: 0px; border-top: 1px solid var(--line); }
