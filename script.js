@@ -51,20 +51,13 @@ document.addEventListener('DOMContentLoaded', () => {
     pagination.append(counter);
     section.querySelector('.gallery-footer').append(pagination, el('span', 'gallery-hint', 'Scroll to move →'));
     const cards = items.map(project => {
-      const card = el(modelGallery ? 'a' : 'button', 'perspective-card');
-      if (modelGallery) {
-        const url = new URL(project.sketchfab);
-        url.pathname = url.pathname.replace(/\/embed\/?$/, '');
-        url.search = '';
-        card.href = url.href;
-        card.target = '_blank';
-        card.rel = 'noopener noreferrer';
-      } else card.type = 'button';
+      const card = el('button', 'perspective-card');
+      card.type = 'button';
       card.setAttribute('aria-label', `Open ${project.title}`);
       const visual = el('div', 'card-preview');
       if (modelGallery && !project.preview) {
         visual.append(el('div', 'media-placeholder', '3D preview unavailable'));
-        fetch(`https://sketchfab.com/oembed?url=${encodeURIComponent(card.href)}&format=json`)
+        fetch(`https://sketchfab.com/oembed?url=${encodeURIComponent(project.sketchfab)}&format=json`)
           .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
           .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, project.title, true)); }).catch(() => {});
       } else visual.append(makeMedia(modelGallery ? project.preview : project.media, project.title, true));
@@ -73,8 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
       card.append(visual, copy);
       if (modelGallery) {
         copy.querySelector('.card-category').textContent = '3D';
-        copy.querySelector('.project-open').textContent = 'Sketchfab ↗';
-      } else card.addEventListener('click', () => openGallery(project, card));
+        copy.querySelector('.project-open').textContent = 'View model';
+      }
+      card.addEventListener('click', () => openGallery(project, card));
       stage.append(card);
       return card;
     });
@@ -158,7 +152,16 @@ document.addEventListener('DOMContentLoaded', () => {
       active.querySelector('video')?.play().catch(() => {});
       [...navigation.children].forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
     }
-    if (items.length) {
+    if (project.sketchfab) {
+      const viewer = el('iframe', 'sketchfab-viewer');
+      viewer.title = `${project.title} — interactive 3D model`;
+      viewer.allow = 'autoplay; fullscreen; xr-spatial-tracking';
+      viewer.allowFullscreen = true;
+      const embedUrl = new URL(project.sketchfab);
+      embedUrl.searchParams.set('autostart', '1');
+      viewer.src = embedUrl.href;
+      active.append(viewer);
+    } else if (items.length) {
       if (items.length > 1) {
         items.forEach((item, index) => {
           const data = mediaData(item);
@@ -176,10 +179,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       select(0);
     } else active.append(makeMedia(null, project.title));
-    for (const [selector, value] of Object.entries({'.lightbox-category': project.category, '.lightbox-title': project.title, '.lightbox-year': project.year, '.lightbox-description': project.description})) lightbox.querySelector(selector).textContent = value || '';
+    for (const [selector, value] of Object.entries({'.lightbox-category': project.category || (project.sketchfab ? '3D' : ''), '.lightbox-title': project.title, '.lightbox-year': project.year, '.lightbox-description': project.description})) lightbox.querySelector(selector).textContent = value || '';
     const link = lightbox.querySelector('.lightbox-link');
-    link.classList.toggle('is-visible', Boolean(project.link));
-    if (project.link) link.href = project.link;
+    let externalLink = project.link;
+    if (project.sketchfab) {
+      const modelUrl = new URL(project.sketchfab);
+      modelUrl.pathname = modelUrl.pathname.replace(/\/embed\/?$/, '');
+      modelUrl.search = '';
+      externalLink = modelUrl.href;
+    }
+    link.textContent = project.sketchfab ? 'Open on Sketchfab ↗' : 'View project';
+    link.classList.toggle('is-visible', Boolean(externalLink));
+    if (externalLink) link.href = externalLink;
+    else link.removeAttribute('href');
     lightbox.inert = false;
     lightbox.setAttribute('aria-hidden', 'false');
     Object.assign(document.body.style, {position: 'fixed', top: `-${savedScroll}px`, width: '100%', overflow: 'hidden'});
@@ -293,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!modalOpen) return;
     if (event.key === 'Escape') closeGallery();
     if (event.key === 'Tab') {
-      const nodes = [...lightbox.querySelectorAll('button, a[href], video[controls]')].filter(node => node.getClientRects().length);
+      const nodes = [...lightbox.querySelectorAll('button, a[href], video[controls], iframe')].filter(node => node.getClientRects().length);
       if (event.shiftKey && document.activeElement === nodes[0]) { event.preventDefault(); nodes.at(-1).focus(); }
       else if (!event.shiftKey && document.activeElement === nodes.at(-1)) { event.preventDefault(); nodes[0].focus(); }
     }

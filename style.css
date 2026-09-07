@@ -28,6 +28,8 @@ body{
 .nav a{color:var(--muted);text-decoration:none;margin-left:28px;font-size:13px;transition:color .2s}
 .nav a:hover{color:var(--text)}
 main{position:relative;z-index:1}
+.site-video-background{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:var(--bg)}
+.site-video-background video{display:block;width:100%;height:100%;object-fit:cover}
 
 .hero{padding:0}
 .hero-full{position:relative;min-height:200vh;display:block;border-bottom:1px solid var(--line)}
@@ -94,7 +96,7 @@ h2{font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;
 .lightbox-media .lightbox-gallery-item img,.lightbox-media .lightbox-gallery-item video{width:100%;height:100%;object-fit:cover;display:block}
 .lightbox-media img,.lightbox-media video{width:100%;height:auto;max-height:none;object-fit:contain;display:block}
 .lightbox-active-media img,.lightbox-active-media video{max-height:90vh;object-fit:contain}
-.lightbox-media iframe{width:100%;height:100%;min-height:560px;border:0;display:block}
+.lightbox-media iframe{width:100%;height:60svh;min-height:280px;max-height:640px;border:0;display:block}
 .lightbox-info{padding:clamp(24px,4vw,40px);overflow-y:auto}
 .lightbox-category{margin:0 0 12px;color:var(--accent);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
 .lightbox-title{margin:0 0 10px;font-size:clamp(24px,3vw,38px);line-height:1.12;overflow-wrap:anywhere}
