@@ -126,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const previewJobs = [];
     const stage = document.getElementById(id);
     const section = stage.closest('.scroll-gallery');
-    section.style.setProperty('--project-count', items.length);
     section.querySelector('.gallery-heading p').textContent = `${items.length} ${modelGallery ? 'models' : 'projects'}`;
     const pagination = el('div', 'gallery-pagination');
     const counter = el('span', 'gallery-counter');
@@ -135,19 +134,21 @@ document.addEventListener('DOMContentLoaded', () => {
       dot.type = 'button';
       dot.setAttribute('aria-label', `Show ${project.title}`);
       dot.addEventListener('click', () => {
-        if (mobileNavigation.matches) {
-          galleries.find(gallery => gallery.section === section).mobileIndex = index;
-          scheduleUpdate();
-          return;
-        }
-        const range = section.offsetHeight - section.querySelector('.gallery-sticky').offsetHeight;
-        window.scrollTo({top: section.offsetTop + ((index + 0.5) / items.length) * range, behavior: 'instant'});
+        galleries.find(gallery => gallery.section === section).selectedIndex = index;
+        scheduleUpdate();
       });
       pagination.append(dot);
       return dot;
     });
     pagination.append(counter);
-    section.querySelector('.gallery-footer').append(pagination, el('span', 'gallery-hint', 'Scroll to move →'));
+    const previous = el('button', 'gallery-arrow', '\u2190');
+    const next = el('button', 'gallery-arrow', '\u2192');
+    for (const [button, direction, label] of [[previous, -1, 'Previous project'], [next, 1, 'Next project']]) {
+      button.type = 'button';
+      button.setAttribute('aria-label', label);
+      button.addEventListener('click', () => stepGallery(galleries.find(gallery => gallery.section === section), direction));
+    }
+    section.querySelector('.gallery-footer').append(previous, pagination, next);
     const cards = items.map((project, index) => {
       const card = el('button', 'perspective-card');
       card.type = 'button';
@@ -205,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
       stage.append(card);
       return card;
     });
-    galleries.push({section, stage, cards, dots, counter, videos: cards.map(card => card.querySelector('video'))});
+    galleries.push({section, stage, cards, dots, counter, previous, next, selectedIndex: 0, videos: cards.map(card => card.querySelector('video'))});
     if (previewJobs.length) {
       const observer = new IntersectionObserver(entries => {
         if (!entries.some(entry => entry.isIntersecting)) return;
@@ -217,7 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const mobileNavigation = window.matchMedia('(max-width: 640px), (pointer: coarse)');
   let lastFrame = 0;
   let layoutDirty = true;
   function updateGalleries(now = performance.now()) {
@@ -238,7 +238,6 @@ document.addEventListener('DOMContentLoaded', () => {
       galleries.forEach(gallery => {
         const {section, stage, cards} = gallery;
         gallery.layout = {top: section.offsetTop,
-          range: section.offsetHeight - section.firstElementChild.offsetHeight,
           stageTop: stage.offsetTop, stageHeight: stage.offsetHeight,
           width: cards[0].offsetWidth, stageWidth: stage.clientWidth};
         gallery.lastProgress = undefined;
@@ -247,13 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     galleries.forEach(gallery => {
       const {section, cards, dots, counter, videos} = gallery;
-      const {top, range, stageTop, stageHeight, width, stageWidth} = gallery.layout;
-      const stageY = (mobileNavigation.matches ? top : Math.min(Math.max(top, scrollY), top + range)) - scrollY + stageTop;
+      const {top, stageTop, stageHeight, width, stageWidth} = gallery.layout;
+      const stageY = top - scrollY + stageTop;
       const rect = {top: stageY, bottom: stageY + stageHeight};
-      // Half a step at either end holds the first and last projects in the centre.
-      const target = mobileNavigation.matches ? (gallery.mobileIndex ?? 0)
-        : Math.round(clamp((window.scrollY - top) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1));
-      gallery.target = target;
+      const target = gallery.selectedIndex;
+      if (gallery.target !== target) {
+        gallery.previous.disabled = target === 0;
+        gallery.next.disabled = target === cards.length - 1;
+        gallery.target = target;
+      }
       const outside = rect.bottom <= 0 || rect.top >= innerHeight;
       if (gallery.progress === undefined || reducedMotion.matches || outside) gallery.progress = target;
       else gallery.progress += (target - gallery.progress) * blend;
@@ -403,92 +404,56 @@ document.addEventListener('DOMContentLoaded', () => {
   createGallery('projects', projects);
   createGallery('static-projects', staticProjects);
   createGallery('three-d-projects', threeDProjects.slice(0, 6), true);
-  // One physical gesture selects one project. Trackpad inertia belongs to that
-  // gesture, rather than selecting more projects on every wheel event.
-  let stepBusyUntil = 0;
-  let lastWheelAt = -Infinity;
-  function pinnedGallery() {
-    if (mobileNavigation.matches) return null;
-    return galleries.find(({section}) => {
-      const start = section.offsetTop;
-      const end = start + section.offsetHeight - section.firstElementChild.offsetHeight;
-      return scrollY >= start - 2 && scrollY <= end + 2;
-    });
-  }
   function stepGallery(gallery, direction) {
-    const now = performance.now();
-    if (now < stepBusyUntil) return;
-    const {section, cards} = gallery;
-    if (mobileNavigation.matches) {
-      gallery.mobileIndex = clamp((gallery.mobileIndex ?? 0) + direction, 0, cards.length - 1);
-      stepBusyUntil = now + (reducedMotion.matches ? 100 : 400);
-      scheduleUpdate();
-      return;
+    if (modalOpen) return;
+    gallery.selectedIndex = clamp(gallery.selectedIndex + direction, 0, gallery.cards.length - 1);
+    scheduleUpdate();
+  }
+  let drag = null;
+  let suppressClickUntil = 0;
+  galleries.forEach(gallery => {
+    gallery.stage.addEventListener('dragstart', event => event.preventDefault());
+    gallery.stage.addEventListener('pointerdown', event => {
+      if (modalOpen || !event.isPrimary || event.button !== 0) return;
+      drag = {gallery, id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false};
+    });
+    gallery.stage.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || modalOpen) return;
+      event.preventDefault();
+      stepGallery(gallery, event.key === 'ArrowRight' ? 1 : -1);
+    });
+  });
+  window.addEventListener('pointermove', event => {
+    if (!drag || event.pointerId !== drag.id) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    if (!drag.horizontal && Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+    if (!drag.horizontal && Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) {
+      drag.horizontal = true;
+      drag.gallery.stage.setPointerCapture(event.pointerId);
+      drag.gallery.stage.classList.add('is-dragging');
     }
-    const range = section.offsetHeight - section.firstElementChild.offsetHeight;
-    const current = Math.round(clamp((scrollY - section.offsetTop) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1));
-    const next = current + direction;
-    stepBusyUntil = now + (reducedMotion.matches ? 180 : 700);
-    if (next >= 0 && next < cards.length) {
-      // The pinned scene stays in place; its renderer animates to this index.
-      scrollTo({top: section.offsetTop + (next + 0.5) * range / cards.length, behavior: 'instant'});
-    } else {
-      const adjacent = galleries[galleries.indexOf(gallery) + direction];
-      const destination = adjacent
-        ? direction > 0 ? adjacent.section.offsetTop : adjacent.section.offsetTop + adjacent.section.offsetHeight - adjacent.section.firstElementChild.offsetHeight
-        : direction > 0 ? section.offsetTop + section.offsetHeight : 0;
-      scrollTo({top: destination, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
+    if (drag.horizontal) suppressClickUntil = performance.now() + 500;
+  }, {passive: true});
+  function finishDrag(event) {
+    if (!drag || event.pointerId !== drag.id) return;
+    const {gallery, horizontal, x, id} = drag;
+    drag = null;
+    gallery.stage.classList.remove('is-dragging');
+    if (gallery.stage.hasPointerCapture(id)) gallery.stage.releasePointerCapture(id);
+    if (horizontal) {
+      suppressClickUntil = performance.now() + 500;
+      if (event.type === 'pointerup' && Math.abs(event.clientX - x) >= 30) stepGallery(gallery, event.clientX < x ? 1 : -1);
     }
   }
-  window.addEventListener('wheel', event => {
-    if (mobileNavigation.matches || modalOpen || event.ctrlKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-    const gallery = pinnedGallery();
-    const now = performance.now();
-    if (!gallery && now >= stepBusyUntil) return;
-    event.preventDefault();
-    const newGesture = now - lastWheelAt > 180;
-    lastWheelAt = now;
-    if (gallery && newGesture) stepGallery(gallery, Math.sign(event.deltaY));
-  }, {passive: false});
-  let touchGesture = null;
-  let suppressClickUntil = 0;
-  window.addEventListener('touchstart', event => {
-    const stage = event.target.closest('.perspective-stage');
-    touchGesture = !modalOpen && event.touches.length === 1
-      ? {gallery: mobileNavigation.matches ? galleries.find(gallery => gallery.stage === stage) : pinnedGallery(), x: event.touches[0].clientX, y: event.touches[0].clientY, stepped: false, vertical: false}
-      : null;
-  }, {passive: true});
-  window.addEventListener('touchmove', event => {
-    if (!touchGesture?.gallery || modalOpen || event.touches.length !== 1) return;
-    const dy = touchGesture.y - event.touches[0].clientY;
-    const dx = touchGesture.x - event.touches[0].clientX;
-    if (mobileNavigation.matches) {
-      if (touchGesture.vertical) return;
-      if (!touchGesture.stepped && Math.abs(dy) >= 6 && Math.abs(dy) > Math.abs(dx)) { touchGesture.vertical = true; return; }
-      if (!touchGesture.stepped && Math.abs(dx) < 8) return;
-    } else if (!touchGesture.stepped && (Math.abs(dy) < 6 || Math.abs(dx) > Math.abs(dy))) return;
-    event.preventDefault();
-    suppressClickUntil = performance.now() + 500;
-    if (!touchGesture.stepped) {
-      touchGesture.stepped = true;
-      stepGallery(touchGesture.gallery, Math.sign(mobileNavigation.matches ? dx : dy));
-    }
-  }, {passive: false});
-  window.addEventListener('touchend', () => { touchGesture = null; }, {passive: true});
-  window.addEventListener('touchcancel', () => { touchGesture = null; }, {passive: true});
+  window.addEventListener('pointerup', finishDrag);
+  window.addEventListener('pointercancel', finishDrag);
   document.addEventListener('click', event => {
-    if (performance.now() < suppressClickUntil && event.target.closest('.perspective-card')) {
+    if (performance.now() < suppressClickUntil && event.target.closest('.perspective-stage')) {
       event.preventDefault();
       event.stopPropagation();
     }
   }, true);
-  document.addEventListener('keydown', event => {
-    if (modalOpen || event.ctrlKey || event.metaKey || event.altKey || event.target.closest('button,a,input,textarea,select,video')) return;
-    const direction = ['ArrowDown', 'PageDown', ' '].includes(event.key) ? (event.shiftKey ? -1 : 1)
-      : ['ArrowUp', 'PageUp'].includes(event.key) ? -1 : 0;
-    const gallery = pinnedGallery();
-    if (direction && gallery) { event.preventDefault(); stepGallery(gallery, direction); }
-  });
   let queued = false;
   function scheduleUpdate() {
     if (queued) return;
@@ -497,12 +462,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('scroll', scheduleUpdate, {passive: true});
   const invalidateLayout = () => { layoutDirty = true; scheduleUpdate(); };
-  mobileNavigation.addEventListener('change', () => {
-    stepBusyUntil = 0;
-    touchGesture = null;
-    galleries.forEach(gallery => { gallery.mobileIndex ??= gallery.target ?? 0; });
-    invalidateLayout();
-  });
   window.addEventListener('resize', invalidateLayout);
   const layoutObserver = new ResizeObserver(invalidateLayout);
   galleries.forEach(({stage, section}) => { layoutObserver.observe(stage); layoutObserver.observe(section); });
