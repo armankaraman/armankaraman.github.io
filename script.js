@@ -30,11 +30,11 @@ document.addEventListener('DOMContentLoaded', () => {
     node.addEventListener('error', () => node.replaceWith(el('div', 'media-placeholder', 'Media unavailable — file to be added')), {once: true});
     return node;
   }
-  function createGallery(id, items) {
+  function createGallery(id, items, modelGallery = false) {
     const stage = document.getElementById(id);
     const section = stage.closest('.scroll-gallery');
     section.style.setProperty('--project-count', items.length);
-    section.querySelector('.gallery-heading p').textContent = `${items.length} projects`;
+    section.querySelector('.gallery-heading p').textContent = `${items.length} ${modelGallery ? 'models' : 'projects'}`;
     const pagination = el('div', 'gallery-pagination');
     const counter = el('span', 'gallery-counter');
     const dots = items.map((project, index) => {
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
       dot.setAttribute('aria-label', `Show ${project.title}`);
       dot.addEventListener('click', () => {
         const range = section.offsetHeight - section.querySelector('.gallery-sticky').offsetHeight;
-        window.scrollTo({top: section.offsetTop + ((index + 0.5) / items.length) * range, behavior: 'instant'});
+        window.scrollTo({top: section.offsetTop + ((index + 0.5) / items.length) * range, behavior: reducedMotion.matches ? 'instant' : 'smooth'});
       });
       pagination.append(dot);
       return dot;
@@ -51,41 +51,77 @@ document.addEventListener('DOMContentLoaded', () => {
     pagination.append(counter);
     section.querySelector('.gallery-footer').append(pagination, el('span', 'gallery-hint', 'Scroll to move →'));
     const cards = items.map(project => {
-      const card = el('button', 'perspective-card');
-      card.type = 'button';
+      const card = el(modelGallery ? 'a' : 'button', 'perspective-card');
+      if (modelGallery) {
+        const url = new URL(project.sketchfab);
+        url.pathname = url.pathname.replace(/\/embed\/?$/, '');
+        url.search = '';
+        card.href = url.href;
+        card.target = '_blank';
+        card.rel = 'noopener noreferrer';
+      } else card.type = 'button';
       card.setAttribute('aria-label', `Open ${project.title}`);
       const visual = el('div', 'card-preview');
-      visual.append(makeMedia(project.media, project.title, true));
+      if (modelGallery && !project.preview) {
+        visual.append(el('div', 'media-placeholder', '3D preview unavailable'));
+        fetch(`https://sketchfab.com/oembed?url=${encodeURIComponent(card.href)}&format=json`)
+          .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
+          .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, project.title, true)); }).catch(() => {});
+      } else visual.append(makeMedia(modelGallery ? project.preview : project.media, project.title, true));
       const copy = el('div', 'card-copy');
       copy.append(el('h3', '', project.title), el('p', 'card-category', project.category), el('p', 'card-description', project.description), el('span', 'project-open', 'View project ↗'));
       card.append(visual, copy);
-      card.addEventListener('click', () => openGallery(project, card));
+      if (modelGallery) {
+        copy.querySelector('.card-category').textContent = '3D';
+        copy.querySelector('.project-open').textContent = 'Sketchfab ↗';
+      } else card.addEventListener('click', () => openGallery(project, card));
       stage.append(card);
       return card;
     });
-    galleries.push({section, stage, cards, dots, counter});
+    galleries.push({section, stage, cards, dots, counter, videos: cards.map(card => card.querySelector('video'))});
   }
-  function updateGalleries() {
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let lastFrame = 0;
+  function updateGalleries(now = performance.now()) {
     if (modalOpen) return;
-    galleries.forEach(({section, stage, cards, dots, counter}) => {
-      const range = section.offsetHeight - section.querySelector('.gallery-sticky').offsetHeight;
+    const elapsed = Math.min(50, lastFrame ? now - lastFrame : 16.7);
+    lastFrame = now;
+    const blend = 1 - Math.exp(-elapsed / 150);
+    let moving = false;
+    // Read geometry for every section before writing transforms: no layout thrashing.
+    const layouts = galleries.map(({section, stage, cards}) => ({
+      top: section.offsetTop,
+      range: section.offsetHeight - section.firstElementChild.offsetHeight,
+      rect: stage.getBoundingClientRect(),
+      width: cards[0].offsetWidth,
+      stageWidth: stage.clientWidth
+    }));
+    galleries.forEach((gallery, galleryIndex) => {
+      const {section, cards, dots, counter, videos} = gallery;
+      const {top, range, rect, width, stageWidth} = layouts[galleryIndex];
       // Half a step at either end holds the first and last projects in the centre.
-      const progress = clamp((window.scrollY - section.offsetTop) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1);
+      const target = clamp((window.scrollY - top) / Math.max(1, range) * cards.length - 0.5, 0, cards.length - 1);
+      const outside = rect.bottom <= 0 || rect.top >= innerHeight;
+      if (gallery.progress === undefined || reducedMotion.matches || outside) gallery.progress = target;
+      else gallery.progress += (target - gallery.progress) * blend;
+      if (Math.abs(target - gallery.progress) < 0.0005) gallery.progress = target;
+      else moving = true;
+      const progress = gallery.progress;
       const active = Math.round(progress);
-      const rect = stage.getBoundingClientRect();
       const inView = rect.bottom > 0 && rect.top < innerHeight && !document.hidden;
-      const width = cards[0].offsetWidth;
       const gap = innerWidth <= 640 ? 12 : 26;
       cards.forEach((card, index) => {
         const distance = index - progress;
         const x = distance * (width + gap);
-        card.style.transform = `translateX(${x}px) translateZ(${-Math.min(Math.abs(distance), 2) * 100}px) rotateY(${clamp(distance, -1, 1) * 28}deg)`;
+        const depth = -100 * (Math.sqrt(distance * distance + 0.16) - 0.4);
+        const angle = 28 * Math.tanh(distance * 1.35);
+        card.style.transform = `translate3d(${x}px,0,${depth}px) rotateY(${angle}deg)`;
         card.style.zIndex = String(10 - Math.round(Math.abs(distance)));
         card.classList.toggle('is-active', index === active);
-        const visible = Math.abs(x) < stage.clientWidth / 2 + width / 2;
+        const visible = Math.abs(x) < stageWidth / 2 + width;
         card.style.visibility = visible ? 'visible' : 'hidden';
         card.tabIndex = visible ? 0 : -1;
-        const video = card.querySelector('video');
+        const video = videos[index];
         if (video) {
           if (inView && visible && video.dataset.playing !== 'true') {
             video.dataset.playing = 'true';
@@ -100,6 +136,8 @@ document.addEventListener('DOMContentLoaded', () => {
       section.dataset.activeIndex = active;
       counter.textContent = `${String(active + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
     });
+    if (moving) scheduleUpdate();
+    else lastFrame = 0;
   }
   function openGallery(project, trigger) {
     opener = trigger;
@@ -163,29 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   createGallery('projects', projects);
   createGallery('static-projects', staticProjects);
-  const models = document.getElementById('three-d-projects');
-  threeDProjects.slice(0, 6).forEach(project => {
-    const card = el('a', 'model-card');
-    const url = new URL(project.sketchfab);
-    url.pathname = url.pathname.replace(/\/embed\/?$/, '');
-    url.search = '';
-    card.href = url.href;
-    card.target = '_blank';
-    card.rel = 'noopener noreferrer';
-    const preview = el('div', 'model-preview');
-    preview.append(el('span', 'model-placeholder', '3D preview unavailable'));
-    card.append(preview, el('h3', '', project.title), el('span', 'model-link', 'Sketchfab ↗'));
-    models.append(card);
-    if (project.preview) preview.replaceChildren(makeMedia(project.preview, project.title, true));
-    else fetch(`https://sketchfab.com/oembed?url=${encodeURIComponent(card.href)}&format=json`)
-      .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
-      .then(data => { if (data.thumbnail_url) preview.replaceChildren(makeMedia(data.thumbnail_url, project.title, true)); }).catch(() => {});
-  });
+  createGallery('three-d-projects', threeDProjects.slice(0, 6), true);
   let queued = false;
   function scheduleUpdate() {
     if (queued) return;
     queued = true;
-    requestAnimationFrame(() => { queued = false; updateGalleries(); });
+    requestAnimationFrame(now => { queued = false; updateGalleries(now); });
   }
   window.addEventListener('scroll', scheduleUpdate, {passive: true});
   window.addEventListener('resize', scheduleUpdate);

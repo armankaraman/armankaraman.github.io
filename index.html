@@ -5,20 +5,13 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Arman Karaman — Motion Designer • 3D • AI Visuals</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=20260907-1">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="style.css?v=20260907-3">
 </head>
 <body>
   <header class="site-header">
     <div class="inner">
       <div class="brand-lockup">
-        <a class="brand" href="#hero">Arman Karaman</a>
+        <a class="brand" href="#work">Arman Karaman</a>
         <span class="brand-tagline">Motion design, 3D, AI Visuals</span>
       </div>
       <nav class="nav">
@@ -32,14 +25,6 @@
   </header>
 
   <main>
-    <section id="hero" class="hero hero-full">
-      <div class="container hero-inner">
-        <div class="hero-stage" aria-label="Future 3D scene"></div>
-        <p class="career-line">AlmaDK 2014–2018 · KPMG 2018–2022 · Tetra Pak 2022–2024 · Sergek Group 2024–2025 · Bazis-A 2026–Present</p>
-        <a class="scroll-indicator" href="#work" aria-label="Scroll to selected work"><span></span></a>
-      </div>
-    </section>
-
     <section id="work" class="section scroll-gallery" aria-label="Motion projects">
       <div class="gallery-sticky">
         <div class="container gallery-heading"><h2>01 / Motion</h2><p>6 projects</p></div>
@@ -56,10 +41,11 @@
       </div>
     </section>
 
-    <section id="3d" class="section slim">
-      <div class="container">
-        <h2>03 / 3D Models</h2>
-        <div class="grid character-grid" id="three-d-projects"></div>
+    <section id="3d" class="section scroll-gallery" aria-label="3D models">
+      <div class="gallery-sticky">
+        <div class="container gallery-heading"><h2>03 / 3D Models</h2><p>6 models</p></div>
+        <div class="perspective-stage" id="three-d-projects"></div>
+        <div class="gallery-footer container"></div>
       </div>
     </section>
 
@@ -119,10 +105,9 @@
     </div>
   </div>
 
-  <script src="projects.js?v=20260907-1"></script>
+  <script src="projects.js?v=20260907-3"></script>
   <script src="static-projects.js"></script>
   <script src="3d-projects.js"></script>
-  <script src="script.js?v=20260907-1"></script>
-  <script type="module" src="hero-3d.js?v=20260904-25"></script>
+  <script src="script.js?v=20260907-3"></script>
 </body>
 </html>
