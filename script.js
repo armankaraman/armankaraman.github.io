@@ -171,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         copy.querySelector('.project-open').textContent = tr('viewModel');
       }
       let resolveMain;
-      if (!modelGallery && project.autoMedia) {
+      if (!modelGallery && project.autoMedia && !project.media) {
         let pending;
         resolveMain = () => pending ||= (async () => {
           const extensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'pdf', 'mp4', 'webm'];
