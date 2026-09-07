@@ -6,7 +6,7 @@
     kz: {
       brandTagline: 'Motion design, 3D, AI визуалдар',
       navMotion: 'Motion', navStills: 'Статика', nav3d: '3D', navAbout: 'Мен туралы', navContact: 'Байланыс',
-      motionHeading: '01 / Motion', stillsHeading: '02 / Статика', modelsHeading: '03 / 3D модельдер',
+      motionHeading: 'Motion', stillsHeading: 'Статика', modelsHeading: '3D модельдер',
       aboutHeading: 'Мен туралы',
       aboutP1: 'Мен Алматыда, Қазақстанда тұратын Motion Designer және 3D Artist маманымын.',
       aboutP2: 'Motion design, 3D, AI көмегімен жасалатын визуалдар және коммерциялық контент бағыттарында жұмыс істеймін. Дизайн, анимация және визуалды сторителлингті біріктіремін.',
@@ -23,7 +23,7 @@
     en: {
       brandTagline: 'Motion design, 3D, AI Visuals',
       navMotion: 'Motion', navStills: 'Stills', nav3d: '3D', navAbout: 'About', navContact: 'Contact',
-      motionHeading: '01 / Motion', stillsHeading: '02 / Stills', modelsHeading: '03 / 3D Models',
+      motionHeading: 'Motion', stillsHeading: 'Stills', modelsHeading: '3D Models',
       aboutHeading: 'About',
       aboutP1: "I'm a Motion Designer and 3D Artist based in Almaty, Kazakhstan.",
       aboutP2: 'I work across motion design, 3D, AI-assisted visuals and commercial content, combining design, animation and visual storytelling.',
@@ -40,7 +40,7 @@
     ru: {
       brandTagline: 'Motion design, 3D, AI-визуалы',
       navMotion: 'Motion', navStills: 'Статика', nav3d: '3D', navAbout: 'Обо мне', navContact: 'Контакты',
-      motionHeading: '01 / Motion', stillsHeading: '02 / Статика', modelsHeading: '03 / 3D модели',
+      motionHeading: 'Motion', stillsHeading: 'Статика', modelsHeading: '3D модели',
       aboutHeading: 'Обо мне',
       aboutP1: 'Я Motion Designer и 3D Artist из Алматы, Казахстан.',
       aboutP2: 'Работаю с motion design, 3D, AI-визуалами и коммерческим контентом, объединяя дизайн, анимацию и визуальный сторителлинг.',
