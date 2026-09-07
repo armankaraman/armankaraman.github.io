@@ -1,7 +1,7 @@
 // Files: still01.* to still06.*; extras: still01-2.*, still01-3.*, etc.
 const staticProjects = [
   {id: 'still01', title: 'Sergek Patrol System — 3D Visualization', category: 'Stills', autoMedia: true,
-    description: '', gallery: []},
+    description: '', gallery: ['still-1-2.jpg', 'still-1-3.jpg']},
   {id: 'still02', title: 'Still 02', category: 'Stills', autoMedia: true,
     description: '', gallery: []},
   {id: 'still03', title: 'Still 03', category: 'Stills', autoMedia: true,
