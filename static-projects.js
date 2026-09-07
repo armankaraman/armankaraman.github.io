@@ -2,14 +2,14 @@
 const staticProjects = [
   {id: 'still01', title: 'Sergek Patrol System — 3D Visualization', category: 'Stills', autoMedia: true,
     description: '', gallery: ['still-1-2.jpg', 'still-1-3.jpg']},
-  {id: 'still02', title: 'Still 02', category: 'Stills', autoMedia: true,
+  {id: 'still02', title: 'Sergek Big Data — 3D Visualization', category: 'Stills', autoMedia: true,
     description: '', gallery: []},
-  {id: 'still03', title: 'Still 03', category: 'Stills', autoMedia: true,
+  {id: 'still03', title: 'Digital District Police — 3D Visualization', category: 'Stills', autoMedia: true,
     description: '', gallery: []},
-  {id: 'still04', title: 'Still 04', category: 'Stills', autoMedia: true,
+  {id: 'still04', title: 'Real Unemployment Rate Presentation', category: 'Stills', autoMedia: true,
     description: '', gallery: []},
-  {id: 'still05', title: 'Still 05', category: 'Stills', autoMedia: true,
+  {id: 'still05', title: 'KPMG Success Story Presentation', category: 'Stills', autoMedia: true,
     description: '', gallery: []},
-  {id: 'still06', title: 'Still 06', category: 'Stills', autoMedia: true,
+  {id: 'still06', title: 'Packaging Artwork Review & Coordination', category: 'Stills', autoMedia: true,
     description: '', gallery: []}
 ];
