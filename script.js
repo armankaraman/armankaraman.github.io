@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function discoverGallery(project, signal) {
     if (discoveredGalleries.has(project.id)) return discoveredGalleries.get(project.id);
     const found = [];
-    const extensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'mp4', 'webm'];
+    const extensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'mp4', 'webm', 'pdf'];
     // Number additional files consecutively from 2; the first missing number ends the list.
     for (let number = 2; !signal.aborted; number++) {
       const matches = await Promise.all(extensions.map(async extension => {
@@ -78,13 +78,28 @@ document.addEventListener('DOMContentLoaded', () => {
   const mediaData = item => {
     if (!item) return item;
     const data = typeof item === 'string'
-      ? {src: item, type: /\.(mp4|webm)(?:[?#]|$)/i.test(item) ? 'video' : 'image'}
+      ? {src: item, type: /\.(mp4|webm)(?:[?#]|$)/i.test(item) ? 'video' : /\.pdf(?:[?#]|$)/i.test(item) ? 'pdf' : 'image'}
       : {...item};
     return {...data, src: assetPath(data.src), poster: assetPath(data.poster)};
   };
   function makeMedia(item, title, preview = false) {
     const data = mediaData(item);
     if (!data?.src) return el('div', 'media-placeholder', 'Preview placeholder — image to be added');
+    if (data.type === 'pdf') {
+      if (preview) return el('div', 'media-placeholder', 'PDF document');
+      const wrapper = el('div', 'pdf-media');
+      const link = el('a', 'pdf-link', 'Open PDF');
+      link.href = data.src;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      const viewer = el('object', 'pdf-viewer');
+      viewer.type = 'application/pdf';
+      viewer.data = data.src;
+      viewer.setAttribute('aria-label', `${title} PDF`);
+      viewer.append(el('p', '', 'Use Open PDF to view this document.'));
+      wrapper.append(link, viewer);
+      return wrapper;
+    }
     const video = data.type === 'video';
     const variant = typeof mediaVariants !== 'undefined' ? mediaVariants[data.src] : null;
     const node = el(video ? 'video' : 'img', '');
@@ -133,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     pagination.append(counter);
     section.querySelector('.gallery-footer').append(pagination, el('span', 'gallery-hint', 'Scroll to move →'));
-    const cards = items.map(project => {
+    const cards = items.map((project, index) => {
       const card = el('button', 'perspective-card');
       card.type = 'button';
       card.setAttribute('aria-label', `Open ${project.title}`);
@@ -151,7 +166,42 @@ document.addEventListener('DOMContentLoaded', () => {
         copy.querySelector('.card-category').textContent = '3D';
         copy.querySelector('.project-open').textContent = 'View model';
       }
-      card.addEventListener('click', () => openGallery(project, card));
+      let resolveMain;
+      if (!modelGallery && project.autoMedia) {
+        let pending;
+        resolveMain = () => pending ||= (async () => {
+          const extensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'pdf', 'mp4', 'webm'];
+          let failed = false;
+          for (const extension of extensions) {
+            const src = `assets/${project.id}.${extension}`;
+            try {
+              const response = await fetchWithTimeout(src, {method: 'HEAD'});
+              if (!response.ok || response.headers.get('content-type')?.includes('text/html')) continue;
+              project.media = src;
+              visual.replaceChildren(makeMedia(src, project.title, true));
+              const gallery = galleries.find(item => item.stage === stage);
+              gallery.videos[index] = visual.querySelector('video');
+              gallery.lastInView = undefined;
+              scheduleUpdate();
+              return;
+            } catch { failed = true; }
+          }
+          if (failed) pending = null;
+        })();
+        previewJobs.push(resolveMain);
+      }
+      card.addEventListener('click', async () => {
+        if (card.dataset.loading === 'true') return;
+        card.dataset.loading = 'true';
+        card.setAttribute('aria-busy', 'true');
+        try {
+          await resolveMain?.();
+          if (!modalOpen) openGallery(project, card);
+        } finally {
+          delete card.dataset.loading;
+          card.removeAttribute('aria-busy');
+        }
+      });
       stage.append(card);
       return card;
     });
