@@ -97,8 +97,8 @@
   let language = (() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      return supported.includes(saved) ? saved : 'kz';
-    } catch { return 'kz'; }
+      return supported.includes(saved) ? saved : 'en';
+    } catch { return 'en'; }
   })();
 
   function format(value, vars = {}) {
