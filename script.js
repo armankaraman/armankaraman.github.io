@@ -1,5 +1,4 @@
-document.addEventListener('DOMContentLoaded', async () => {
-  await window.portfolioContentReady;
+document.addEventListener('DOMContentLoaded', () => {
   const i18n = window.portfolioI18n;
   const tr = (key, vars) => i18n?.t(key, vars) ?? key;
   const projectText = (project, field) => i18n?.projectField(project, field) ?? project?.[field] ?? '';

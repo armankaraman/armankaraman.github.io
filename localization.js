@@ -212,13 +212,10 @@
     document.dispatchEvent(new CustomEvent('portfolio:languagechange', {detail: {language}}));
   }
 
-  function initialize() {
+  document.addEventListener('DOMContentLoaded', () => {
     applyStatic();
     document.querySelectorAll('[data-lang]').forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.lang)));
-  }
-
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, {once: true});
-  else initialize();
+  });
 
   window.portfolioI18n = {
     get language() { return language; },
