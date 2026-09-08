@@ -135,4 +135,9 @@
   if (video.readyState >= 2) primeVideo();
   if (video.error) video.dispatchEvent(new Event('error'));
   applyMotionPreference();
+  if (mobileInput.matches && !reducedMotion.matches) {
+    video.preload = 'auto';
+    video.load();
+    video.pause();
+  }
 })();
