@@ -133,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const updateHeadingCount = () => { headingCount.textContent = i18n?.count(modelGallery ? 'models' : 'projects', items.length) ?? `${items.length}`; };
     updateHeadingCount();
     const pagination = el('div', 'gallery-pagination');
-    const counter = el('span', 'gallery-counter');
     const dots = items.map((project, index) => {
       const dot = el('button', 'gallery-dot');
       dot.type = 'button';
@@ -145,7 +144,6 @@ document.addEventListener('DOMContentLoaded', () => {
       pagination.append(dot);
       return dot;
     });
-    pagination.append(counter);
     const previous = el('button', 'gallery-arrow', '\u2190');
     const next = el('button', 'gallery-arrow', '\u2192');
     for (const [button, direction, labelKey] of [[previous, -1, 'previousProject'], [next, 1, 'nextProject']]) {
@@ -173,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
         copy.querySelector('.project-open').textContent = tr('viewModel');
       }
       let resolveMain;
-      if (!modelGallery && project.autoMedia) {
+      if (!modelGallery && project.autoMedia && !project.media) {
         let pending;
         resolveMain = () => pending ||= (async () => {
           const extensions = ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'pdf', 'mp4', 'webm'];
@@ -225,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
       previous.setAttribute('aria-label', tr('previousProject'));
       next.setAttribute('aria-label', tr('nextProject'));
     };
-    galleries.push({section, stage, cards, dots, counter, previous, next, selectedIndex: 0, videos: cards.map(card => card.querySelector('video')), items, modelGallery, refreshLanguage});
+    galleries.push({section, stage, cards, dots, previous, next, selectedIndex: Math.min(2, items.length - 1), videos: cards.map(card => card.querySelector('video')), items, modelGallery, refreshLanguage});
     if (previewJobs.length) {
       const observer = new IntersectionObserver(entries => {
         if (!entries.some(entry => entry.isIntersecting)) return;
@@ -264,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
       layoutDirty = false;
     }
     galleries.forEach(gallery => {
-      const {section, cards, dots, counter, videos} = gallery;
+      const {section, cards, dots, videos} = gallery;
       const {top, stageTop, stageHeight, width, stageWidth} = gallery.layout;
       const stageY = top - scrollY + stageTop;
       const rect = {top: stageY, bottom: stageY + stageHeight};
@@ -316,7 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       if (activeChanged) {
         section.dataset.activeIndex = active;
-        counter.textContent = `${String(active + 1).padStart(2, '0')} / ${String(cards.length).padStart(2, '0')}`;
         gallery.lastActive = active;
       }
     });
@@ -425,7 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let activeProject = null;
   createGallery('projects', projects);
   createGallery('static-projects', staticProjects);
-  createGallery('three-d-projects', threeDProjects.slice(0, 6), true);
+  createGallery('three-d-projects', threeDProjects, true);
   function stepGallery(gallery, direction) {
     if (modalOpen) return;
     gallery.selectedIndex = clamp(gallery.selectedIndex + direction, 0, gallery.cards.length - 1);

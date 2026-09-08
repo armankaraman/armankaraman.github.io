@@ -1,15 +1,15 @@
 // Files: still01.* to still06.*; extras: still01-2.*, still01-3.*, etc.
 const staticProjects = [
-  {id: 'still01', title: 'Still 01', category: 'Stills', autoMedia: true,
-    description: '', gallery: []},
-  {id: 'still02', title: 'Still 02', category: 'Stills', autoMedia: true,
-    description: '', gallery: []},
-  {id: 'still03', title: 'Still 03', category: 'Stills', autoMedia: true,
-    description: '', gallery: []},
-  {id: 'still04', title: 'Still 04', category: 'Stills', autoMedia: true,
-    description: '', gallery: []},
-  {id: 'still05', title: 'Still 05', category: 'Stills', autoMedia: true,
-    description: '', gallery: []},
-  {id: 'still06', title: 'Still 06', category: 'Stills', autoMedia: true,
+  {id: 'still01', title: 'Sergek Patrol System — 3D Visualization', category: 'Stills', autoMedia: true,
+    description: '', gallery: ['still-1-2.jpg', 'still-1-3.jpg']},
+  {id: 'still02', title: 'Sergek Big Data — 3D Visualization', category: 'Stills', autoMedia: true,
+    media: 'Still02.jpg', description: '', gallery: ['Still-2-2.jpg', 'Still-2-3.jpg']},
+  {id: 'still03', title: 'Digital District Police — 3D Visualization', category: 'Stills', autoMedia: true,
+    media: 'Still03.jpg', description: '', gallery: ['Still-3-2.jpg', 'Still-3-3.jpg']},
+  {id: 'still04', title: 'Real Unemployment Rate Presentation', category: 'Stills', autoMedia: true,
+    media: 'Still04.jpg', description: '', gallery: ['Still-4-2.jpg', 'Still-4-3.jpg']},
+  {id: 'still05', title: 'KPMG Success Story Presentation', category: 'Stills', autoMedia: true,
+    media: 'Still05.jpg', description: '', gallery: ['Still-5-2.jpg', 'Still-5-3.jpg']},
+  {id: 'still06', title: 'Packaging Artwork Review & Coordination', category: 'Stills', autoMedia: true,
     description: '', gallery: []}
 ];
