@@ -10,6 +10,22 @@
   let priming = false, primed = false, generation = 0, retried = false;
   let range = 1;
 
+  function applyMotionPreference() {
+    if (reducedMotion.matches) {
+      generation++;
+      priming = primed = false;
+      video.pause();
+      video.removeAttribute('src');
+      video.preload = 'none';
+      video.load();
+    } else {
+      video.preload = document.readyState === 'complete' ? 'auto' : 'metadata';
+      if (!video.getAttribute('src')) video.src = video.dataset.src;
+      primeVideo();
+    }
+    measure();
+  }
+
   function schedule() {
     if (!frame && !blocked()) frame = requestAnimationFrame(render);
   }
@@ -29,7 +45,7 @@
     schedule();
   }
   function primeVideo() {
-    if (primed || priming || blocked() || video.readyState < 2) return;
+    if (reducedMotion.matches || primed || priming || blocked() || video.readyState < 2) return;
     priming = true;
     const attempt = generation;
     video.play().then(() => {
@@ -92,7 +108,7 @@
   document.addEventListener('touchstart', primeVideo, {passive: true});
   document.addEventListener('click', primeVideo);
   document.addEventListener('visibilitychange', () => { measure(); primeVideo(); });
-  reducedMotion.addEventListener('change', updateTarget);
+  reducedMotion.addEventListener('change', applyMotionPreference);
   if (lightbox) new MutationObserver(() => { measure(); primeVideo(); }).observe(lightbox, {
     attributes: true, attributeFilter: ['aria-hidden']
   });
@@ -101,9 +117,9 @@
   video.loop = video.autoplay = false;
   // src is in HTML so the browser starts downloading before scripts execute.
   // Do not call load() again here: that cancels the request already in progress.
-  if (!video.getAttribute('src')) video.src = video.dataset.src;
+  if (!reducedMotion.matches && !video.getAttribute('src')) video.src = video.dataset.src;
   if (video.readyState >= 1) metadata();
   if (video.readyState >= 2) primeVideo();
   if (video.error) video.dispatchEvent(new Event('error'));
-  measure();
+  applyMotionPreference();
 })();

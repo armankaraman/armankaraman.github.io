@@ -360,13 +360,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const items = [project.media, ...(project.gallery || [])].filter(Boolean);
     const active = el('div', 'lightbox-active-media');
     const navigation = el('div', 'lightbox-gallery');
+    let selectedMediaIndex = -1;
     lbMedia.append(active);
     function select(index) {
+      if (!items.length) return;
+      const nextIndex = clamp(index, 0, items.length - 1);
+      if (nextIndex === selectedMediaIndex) return;
+      selectedMediaIndex = nextIndex;
       releaseMedia(active);
-      active.replaceChildren(makeMedia(items[index], projectText(project, 'title')));
+      active.replaceChildren(makeMedia(items[selectedMediaIndex], projectText(project, 'title')));
       active.querySelector('video')?.play().catch(() => {});
-      [...navigation.children].forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+      [...navigation.children].forEach((button, i) => button.setAttribute('aria-pressed', String(i === selectedMediaIndex)));
     }
+    lightbox.stepMedia = direction => select(selectedMediaIndex + direction);
     function appendPreview(item, index) {
       const data = mediaData(item);
       const button = el('button', 'lightbox-gallery-item');
@@ -442,6 +448,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.scrollTo({top: savedScroll, behavior: 'instant'});
     modalOpen = false;
     activeProject = null;
+    delete lightbox.stepMedia;
     galleries.forEach(gallery => { gallery.lastInView = undefined; });
     opener?.focus({preventScroll: true});
     updateGalleries();
@@ -546,7 +553,16 @@ document.addEventListener('DOMContentLoaded', () => {
   lightbox.addEventListener('click', event => { if (event.target === lightbox) closeGallery(); });
   document.addEventListener('keydown', event => {
     if (!modalOpen) return;
-    if (event.key === 'Escape') closeGallery();
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      closeGallery();
+      return;
+    }
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      event.preventDefault();
+      lightbox.stepMedia?.(event.key === 'ArrowRight' ? 1 : -1);
+      return;
+    }
     if (event.key === 'Tab') {
       const nodes = [...lightbox.querySelectorAll('button, a[href], video[controls], iframe')].filter(node => node.getClientRects().length);
       if (event.shiftKey && document.activeElement === nodes[0]) { event.preventDefault(); nodes.at(-1).focus(); }
