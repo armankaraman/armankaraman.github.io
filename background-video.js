@@ -63,8 +63,12 @@
   }
   function render(now) {
     frame = 0;
-    if (!duration || video.readyState < 2 || video.seeking || blocked() || priming) {
+    if (blocked() || priming) {
       lastTime = 0;
+      return;
+    }
+    if (!duration || video.readyState < 2 || video.seeking) {
+      schedule();
       return;
     }
     const dt = Math.min(50, lastTime ? now - lastTime : 16.7);
@@ -86,8 +90,10 @@
     measure();
   }
   video.addEventListener('loadedmetadata', metadata);
+  video.addEventListener('durationchange', metadata);
   video.addEventListener('loadeddata', () => { primeVideo(); schedule(); });
   video.addEventListener('canplay', () => { primeVideo(); schedule(); });
+  video.addEventListener('seeking', schedule);
   video.addEventListener('seeked', schedule);
   video.addEventListener('progress', schedule);
   video.addEventListener('error', () => {
