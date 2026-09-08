@@ -4,13 +4,10 @@
   if (!video) return;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
   const mobileInput = matchMedia('(max-width: 640px), (pointer: coarse)');
-  const iOS = /iP(?:ad|hone|od)/.test(navigator.userAgent) ||
-    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const lightbox = document.getElementById('lightbox');
   const blocked = () => document.hidden || lightbox?.getAttribute('aria-hidden') === 'false';
   const interval = 1 / 24;
   let duration = 0, target = 0, position = 0, frame = 0, lastTime = 0;
-  let lastSeekTime = 0;
   let priming = false, primed = false, generation = 0, retried = false;
   let range = 1;
 
@@ -71,19 +68,23 @@
       return;
     }
     if (!duration || video.readyState < 2) return;
-    if (video.seeking) return;
     const dt = Math.min(50, lastTime ? now - lastTime : 16.7);
     lastTime = now;
-    position += (target - position) * (reducedMotion.matches || mobileInput.matches ? 1 : 1 - Math.exp(-dt / 100));
+    if (mobileInput.matches) {
+      position += (target - position) * (reducedMotion.matches ? 1 : 1 - Math.exp(-dt / 140));
+      if (Math.abs(target - position) < 0.015) position = target;
+      const seekTime = Math.min(duration, Math.max(0.001, position));
+      if (!video.seeking && Math.abs(video.currentTime - seekTime) >= 0.001) video.currentTime = seekTime;
+      if (position !== target) schedule();
+      else lastTime = 0;
+      return;
+    }
+    if (video.seeking) return;
+    position += (target - position) * (reducedMotion.matches ? 1 : 1 - Math.exp(-dt / 100));
     if (Math.abs(target - position) < 0.015) position = target;
     // Clamp AFTER rounding: never request a frame beyond the duration.
     const seekTime = Math.min(duration, Math.max(0, Math.round(position / interval) * interval));
     if (Math.abs(video.currentTime - seekTime) >= interval / 2) {
-      if (iOS && now - lastSeekTime < interval * 1000) {
-        schedule();
-        return;
-      }
-      lastSeekTime = now;
       video.currentTime = seekTime;
       return; // seeked resumes the loop when decoding finishes.
     }
