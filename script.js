@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
       node.preload = preview ? 'none' : 'metadata';
       if (data.poster || variant?.poster) node.poster = data.poster || variant.poster;
     } else {
-      node.alt = data.alt || title;
+      node.alt = data.alt ?? title;
       node.loading = 'lazy';
       node.decoding = 'async';
     }
@@ -349,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
       button.setAttribute('aria-pressed', String(index === 0));
       const variant = typeof mediaVariants !== 'undefined' ? mediaVariants[data.src] : null;
       const thumbnail = makeMedia(variant?.poster ? {src: variant.poster, type: 'image'} : data, projectText(project, 'title'), true);
+      if (thumbnail.tagName === 'IMG') thumbnail.alt = '';
       if (thumbnail.tagName === 'VIDEO') thumbnail.preload = 'metadata';
       button.append(thumbnail);
       if (data.type === 'video') button.append(el('span', 'thumbnail-label', index === 0 ? tr('mainVideo') : tr('video')));
