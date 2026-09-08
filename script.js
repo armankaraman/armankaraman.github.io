@@ -513,6 +513,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('pointerup', finishDrag);
   window.addEventListener('pointercancel', finishDrag);
+  let sectionSwipe = null;
+  const mobileInput = matchMedia('(max-width: 640px), (pointer: coarse)');
+  const sections = [...document.querySelectorAll('main > .section')];
+  function sectionAtViewport() {
+    const center = scrollY + innerHeight / 2;
+    return sections.reduce((closest, section) => {
+      const distance = Math.abs(section.offsetTop + section.offsetHeight / 2 - center);
+      return !closest || distance < closest.distance ? {section, distance} : closest;
+    }, null)?.section;
+  }
+  function moveToAdjacentSection(direction) {
+    const current = sectionAtViewport();
+    const index = sections.indexOf(current);
+    const next = sections[index + direction];
+    if (!next) return;
+    next.scrollIntoView({behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'start'});
+  }
+  document.addEventListener('pointerdown', event => {
+    if (!mobileInput.matches || modalOpen || !event.isPrimary || event.pointerType === 'mouse' || isEditableTarget(event.target)) return;
+    sectionSwipe = {x: event.clientX, y: event.clientY};
+  }, {passive: true});
+  document.addEventListener('pointerup', event => {
+    if (!sectionSwipe || !event.isPrimary) return;
+    const {x, y} = sectionSwipe;
+    sectionSwipe = null;
+    const dx = event.clientX - x;
+    const dy = event.clientY - y;
+    if (Math.abs(dy) < 40 || Math.abs(dy) <= Math.abs(dx) * 1.2) return;
+    moveToAdjacentSection(dy < 0 ? 1 : -1);
+  }, {passive: true});
+  document.addEventListener('pointercancel', () => { sectionSwipe = null; }, {passive: true});
   document.addEventListener('click', event => {
     if (performance.now() < suppressClickUntil && event.target.closest('.perspective-stage')) {
       event.preventDefault();

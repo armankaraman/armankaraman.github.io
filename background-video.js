@@ -3,6 +3,7 @@
   const video = document.getElementById('background-video');
   if (!video) return;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileInput = matchMedia('(max-width: 640px), (pointer: coarse)');
   const lightbox = document.getElementById('lightbox');
   const blocked = () => document.hidden || lightbox?.getAttribute('aria-hidden') === 'false';
   const interval = 1 / 24;
@@ -68,7 +69,7 @@
     }
     const dt = Math.min(50, lastTime ? now - lastTime : 16.7);
     lastTime = now;
-    position += (target - position) * (reducedMotion.matches ? 1 : 1 - Math.exp(-dt / 100));
+    position += (target - position) * (reducedMotion.matches || mobileInput.matches ? 1 : 1 - Math.exp(-dt / 100));
     if (Math.abs(target - position) < 0.015) position = target;
     // Clamp AFTER rounding: never request a frame beyond the duration.
     const seekTime = Math.min(duration, Math.max(0, Math.round(position / interval) * interval));

@@ -170,6 +170,10 @@ html { scroll-snap-type: y proximity; scroll-padding-top: 0; }
 main > .section { scroll-snap-align: start; scroll-snap-stop: normal; }
 .scroll-gallery { scroll-margin-top: 0; }
 .section:not(.scroll-gallery) { scroll-margin-top: var(--header-height, 80px); min-height: calc(100svh - var(--header-height, 80px)); }
+@media (max-width: 640px), (pointer: coarse) {
+  html { scroll-snap-type: y mandatory; }
+  main > .section { scroll-snap-stop: always; }
+}
 .experience-block { margin-top: 48px; }
 
 /* Language switcher */
