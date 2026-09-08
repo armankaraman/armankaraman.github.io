@@ -37,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
   function releaseMedia(container) {
-    container.querySelectorAll('img, video').forEach(node => mediaObserver.unobserve(node));
     container.querySelectorAll('video').forEach(video => {
       video.pause();
       // Cancel unfinished downloads and release decoders before removing nodes.
@@ -86,19 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
       : {...item};
     return {...data, src: assetPath(data.src), poster: assetPath(data.poster)};
   };
-  function loadMedia(node) {
-    if (node.dataset.src) {
-      node.src = node.dataset.src;
-      delete node.dataset.src;
-    }
-  }
-  const mediaObserver = new IntersectionObserver(entries => {
-    entries.forEach(({target, isIntersecting}) => {
-      if (!isIntersecting) return;
-      loadMedia(target);
-      mediaObserver.unobserve(target);
-    });
-  }, {rootMargin: '150px 0px'});
   function makeMedia(item, title, preview = false) {
     const data = mediaData(item);
     if (!data?.src) return el('div', 'media-placeholder', tr('previewPlaceholder'));
@@ -130,11 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
       node.loading = 'lazy';
       node.decoding = 'async';
     }
-    const src = preview && variant?.preview ? variant.preview : data.src;
-    if (preview && !video) {
-      node.dataset.src = src;
-      mediaObserver.observe(node);
-    } else node.src = src;
+    node.src = preview && variant?.preview ? variant.preview : data.src;
     node.addEventListener('error', () => {
       if (video && variant?.preview && node.getAttribute('src') === variant.preview) {
         node.src = data.src;
@@ -248,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.disconnect();
         const worker = async () => { while (previewJobs.length) await previewJobs.shift()(); };
         worker(); worker();
-      }, {rootMargin: '150px 0px'});
+      }, {rootMargin: '100% 0px'});
       observer.observe(section);
     }
   }
