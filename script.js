@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
       : {...item};
     return {...data, src: assetPath(data.src), poster: assetPath(data.poster)};
   };
-  function makeMedia(item, title, preview = false) {
+  function makeMedia(item, title, preview = false, deferPreviewImage = false) {
     const data = mediaData(item);
     if (!data?.src) return el('div', 'media-placeholder', tr('previewPlaceholder'));
     if (data.type === 'pdf') {
@@ -116,8 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
       node.loading = preview ? 'lazy' : 'eager';
       node.decoding = 'async';
     }
-    if (preview && video) node.dataset.src = variant?.preview || data.src;
-    else node.src = preview && variant?.preview ? variant.preview : data.src;
+    if (preview && video) {
+      node.dataset.src = variant?.preview || data.src;
+    } else {
+      const resolvedSrc = preview && variant?.preview ? variant.preview : data.src;
+      if (preview && !video && deferPreviewImage) node.dataset.src = resolvedSrc;
+      else node.src = resolvedSrc;
+    }
     node.addEventListener('error', () => {
       if (variant?.preview && node.getAttribute('src') === variant.preview) {
         node.src = data.src;
@@ -163,7 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
         previewJobs.push(() => fetchWithTimeout(`https://sketchfab.com/oembed?url=${encodeURIComponent(project.sketchfab)}&format=json`)
           .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
           .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, projectText(project, 'title'), true)); }).catch(() => {}));
-      } else visual.append(makeMedia(modelGallery ? project.preview : project.media, projectText(project, 'title'), true));
+      } else {
+        const deferPreviewImage = id !== 'projects';
+        visual.append(makeMedia(modelGallery ? project.preview : project.media, projectText(project, 'title'), true, deferPreviewImage));
+      }
       const copy = el('div', 'card-copy');
       copy.append(el('h3', '', projectText(project, 'title')), el('p', 'card-category', projectText(project, 'category')), el('p', 'card-description', projectText(project, 'description')), el('span', 'project-open', tr('viewProject')));
       card.append(visual, copy);
@@ -225,6 +233,22 @@ document.addEventListener('DOMContentLoaded', () => {
       next.setAttribute('aria-label', tr('nextProject'));
     };
     galleries.push({section, stage, cards, dots, previous, next, selectedIndex: Math.min(2, items.length - 1), videos: cards.map(card => card.querySelector('video')), items, modelGallery, refreshLanguage});
+
+    // Motion is the first visible section, so its previews stay immediate.
+    // Stills / explicit 3D image previews do not get a src until their section is close to view.
+    const deferredImages = [...stage.querySelectorAll('img[data-src]:not([src])')];
+    if (deferredImages.length) {
+      const activateImages = () => deferredImages.forEach(image => {
+        if (!image.src && image.dataset.src) image.src = image.dataset.src;
+      });
+      const imageObserver = new IntersectionObserver(entries => {
+        if (!entries.some(entry => entry.isIntersecting)) return;
+        imageObserver.disconnect();
+        activateImages();
+      }, {rootMargin: '20% 0px'});
+      imageObserver.observe(section);
+    }
+
     if (previewJobs.length) {
       const observer = new IntersectionObserver(entries => {
         if (!entries.some(entry => entry.isIntersecting)) return;

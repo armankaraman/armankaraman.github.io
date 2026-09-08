@@ -14,3 +14,14 @@ Changed:
 Deployment:
 Copy these root files into the existing repository and keep the existing assets/ folder unchanged.
 Commit and push, then hard refresh once after GitHub Pages deploys.
+
+
+ArmanKaraman.com follow-up loading patch — 2026-09-08
+
+Changed:
+- Motion section previews still load immediately because Motion is the first visible section.
+- Stills card images no longer receive a src until the Stills section is close to the viewport.
+- Explicit image previews in later galleries use the same deferred-src behavior.
+- Full media in the lightbox is unchanged and still loads on click.
+- Hero scrub logic, Motion autoplay, swipes, lightbox and localization are unchanged.
+- Cache-busting query string updated to 20260908-fast2.
