@@ -26,7 +26,7 @@ const projects = [
     id: "project03",
     media: "assets/project03.mp4",
     title: "Sergek HR Bot",
-    category: "3D,
+    category: "3D",
     year: "2025",
     description: "Character animation and motion design for Sergek Group’s HR communication campaign.",
     link: "",

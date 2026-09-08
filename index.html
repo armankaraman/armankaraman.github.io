@@ -156,12 +156,20 @@
     </div>
   </div>
 
-  <script defer src="projects.js?v=20260908-fast2"></script>
-  <script defer src="static-projects.js?v=20260908-fast2"></script>
-  <script defer src="3d-projects.js?v=20260908-i18n-audit"></script>
-  <script defer src="media-variants.js?v=20260908-fast2"></script>
-  <script defer src="localization.js?v=20260908-i18n-audit"></script>
-  <script defer src="script.js?v=20260908-native-scroll"></script>
+  <script>
+    const contentVersion = Date.now();
+    window.portfolioContentReady = Promise.all([
+      'projects.js', 'static-projects.js', '3d-projects.js', 'media-variants.js', 'localization.js'
+    ].map(source => new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = `${source}?v=${contentVersion}`;
+      script.async = false;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.append(script);
+    })));
+  </script>
+  <script defer src="script.js?v=20260908-content-loader"></script>
   <script defer src="background-video.js?v=20260908-mobile-scrub-load"></script>
 </body>
 </html>

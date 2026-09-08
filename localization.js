@@ -68,7 +68,7 @@
     }
   };
 
-  const projectText = {
+  const projectTranslations = {
     project01: {
       kz: {title: 'Taulan тұрғын үй кешені', category: 'AI визуалдар', description: 'Taulan тұрғын үй кешеніне арналған AI көмегімен жасалған архитектуралық визуалдар мен motion design. Негізгі акцент — атмосфера, өмір салты және премиум презентация.'},
       ru: {title: 'Жилой комплекс Taulan', category: 'AI-визуалы', description: 'Архитектурные AI-визуалы и motion design для жилого комплекса Taulan с акцентом на атмосферу, образ жизни и премиальную подачу.'}
@@ -167,7 +167,8 @@
 
   function projectField(project, field) {
     if (!project) return '';
-    if (project.id && projectText[project.id]?.[language]?.[field] !== undefined) return projectText[project.id][language][field];
+    const translation = language === 'en' ? undefined : projectTranslations[project.id]?.[language]?.[field];
+    if (translation !== undefined) return translation;
     if (project.sketchfab && field === 'description') {
       const isCharacter = /character model/i.test(project.description || '');
       return isCharacter ? generic3dCharacter[language] : generic3d[language];
@@ -211,10 +212,13 @@
     document.dispatchEvent(new CustomEvent('portfolio:languagechange', {detail: {language}}));
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function initialize() {
     applyStatic();
     document.querySelectorAll('[data-lang]').forEach(button => button.addEventListener('click', () => setLanguage(button.dataset.lang)));
-  });
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, {once: true});
+  else initialize();
 
   window.portfolioI18n = {
     get language() { return language; },
