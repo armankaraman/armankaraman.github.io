@@ -113,14 +113,15 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.poster || variant?.poster) node.poster = data.poster || variant.poster;
     } else {
       node.alt = data.alt ?? title;
-      node.loading = 'lazy';
+      node.loading = 'eager';
       node.decoding = 'async';
     }
-    node.src = preview && variant?.preview ? variant.preview : data.src;
+    if (preview && video) node.dataset.src = variant?.preview || data.src;
+    else node.src = preview && variant?.preview ? variant.preview : data.src;
     node.addEventListener('error', () => {
-      if (video && variant?.preview && node.getAttribute('src') === variant.preview) {
+      if (variant?.preview && node.getAttribute('src') === variant.preview) {
         node.src = data.src;
-        if (node.dataset.playing === 'true') node.play().catch(() => { node.dataset.playing = 'false'; });
+        if (video && node.dataset.playing === 'true') node.play().catch(() => { node.dataset.playing = 'false'; });
       } else node.replaceWith(el('div', 'media-placeholder', tr('mediaUnavailable')));
     });
     return node;
@@ -163,6 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
           .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
           .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, projectText(project, 'title'), true)); }).catch(() => {}));
       } else visual.append(makeMedia(modelGallery ? project.preview : project.media, projectText(project, 'title'), true));
+      const previewImage = visual.querySelector('img');
+      if (previewImage) previewJobs.push(() => { previewImage.loading = 'eager'; });
       const copy = el('div', 'card-copy');
       copy.append(el('h3', '', projectText(project, 'title')), el('p', 'card-category', projectText(project, 'category')), el('p', 'card-description', projectText(project, 'description')), el('span', 'project-open', tr('viewProject')));
       card.append(visual, copy);
@@ -255,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
       galleries.forEach(gallery => {
         const {section, stage, cards} = gallery;
         gallery.layout = {top: section.offsetTop,
-          stageTop: stage.offsetTop, stageHeight: stage.offsetHeight,
+          stageTop: stage.getBoundingClientRect().top - section.getBoundingClientRect().top, stageHeight: stage.offsetHeight,
           width: cards[0].offsetWidth, stageWidth: stage.clientWidth};
         gallery.lastProgress = undefined;
       });
@@ -301,11 +304,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (card.tabIndex !== (visible ? 0 : -1)) card.tabIndex = visible ? 0 : -1;
         const video = videos[index];
         if (video) {
-          if (inView && Math.abs(distance) <= 2 && video.preload === 'none' && !navigator.connection?.saveData) video.preload = 'metadata';
-          if (inView && visible && video.dataset.playing !== 'true') {
+          const shouldPlay = inView && visible && !reducedMotion.matches && !navigator.connection?.saveData;
+          if (shouldPlay && video.dataset.playing !== 'true') {
+            if (!video.hasAttribute('src')) video.src = video.dataset.src;
             video.dataset.playing = 'true';
             video.play().catch(() => { video.dataset.playing = 'false'; });
-          } else if (!inView || !visible) {
+          } else if (!shouldPlay) {
             video.pause();
             video.dataset.playing = 'false';
           }
@@ -350,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const variant = typeof mediaVariants !== 'undefined' ? mediaVariants[data.src] : null;
       const thumbnail = makeMedia(variant?.poster ? {src: variant.poster, type: 'image'} : data, projectText(project, 'title'), true);
       if (thumbnail.tagName === 'IMG') thumbnail.alt = '';
-      if (thumbnail.tagName === 'VIDEO') thumbnail.preload = 'metadata';
+      if (thumbnail.tagName === 'VIDEO') { thumbnail.preload = 'metadata'; thumbnail.src = thumbnail.dataset.src; }
       button.append(thumbnail);
       if (data.type === 'video') button.append(el('span', 'thumbnail-label', index === 0 ? tr('mainVideo') : tr('video')));
       button.addEventListener('click', () => select(index));
@@ -391,7 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('main').inert = document.querySelector('header').inert = true;
     lightbox.scrollTop = 0;
     closeButton.focus({preventScroll: true});
-    if (/^(still|project)\d+$/.test(project.id)) {
+    if (project.discoverMedia === true) {
       discoverGallery(project, discoverySignal).then(files => {
         if (discoverySignal.aborted || !modalOpen) return;
         const existing = new Set(items.map(item => mediaData(item).src));
@@ -474,34 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
       event.stopPropagation();
     }
   }, true);
-  // A wheel gesture advances one section. Tall sections remain readable before leaving.
-  const pageSections = [...document.querySelectorAll('main > .section')];
-  let lastSectionWheel = -Infinity;
-  let sectionBusyUntil = 0;
-  window.addEventListener('wheel', event => {
-    if (modalOpen || event.ctrlKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
-    if (event.target.closest('textarea, input, select, iframe, object')) return;
-    const now = performance.now();
-    const fresh = now - lastSectionWheel > 200;
-    lastSectionWheel = now;
-    const headerHeight = header.offsetHeight;
-    const maxScroll = document.documentElement.scrollHeight - innerHeight;
-    const positions = pageSections.map(section => Math.min(maxScroll, Math.max(0, section.offsetTop - (section.classList.contains('scroll-gallery') ? 0 : headerHeight))));
-    let index = positions.findLastIndex(top => top <= scrollY + 3);
-    index = Math.max(0, index);
-    const direction = Math.sign(event.deltaY);
-    if (now < sectionBusyUntil) { event.preventDefault(); return; }
-    const section = pageSections[index];
-    const bottom = section.offsetTop + section.offsetHeight;
-    const canReadMore = direction > 0 ? scrollY + innerHeight < bottom - 3 : scrollY > positions[index] + 3;
-    if (canReadMore && section.offsetHeight > innerHeight - headerHeight + 3 && !section.classList.contains('scroll-gallery')) return;
-    event.preventDefault();
-    if (!fresh) return;
-    const next = clamp(index + direction, 0, pageSections.length - 1);
-    if (next === index) return;
-    sectionBusyUntil = now + (reducedMotion.matches ? 100 : 850);
-    scrollTo({top: positions[next], behavior: reducedMotion.matches ? 'instant' : 'smooth'});
-  }, {passive: false});
+  // Native scrolling keeps wheel and trackpad input responsive.
   let queued = false;
   function scheduleUpdate() {
     if (queued) return;
@@ -517,6 +494,14 @@ document.addEventListener('DOMContentLoaded', () => {
     galleries.forEach(gallery => { gallery.lastInView = undefined; });
     if (document.hidden) updateGalleries(); else scheduleUpdate();
   });
+  // Retry browser-blocked autoplay on a gesture and after BFCache restoration.
+  const retryPreviews = () => {
+    galleries.forEach(gallery => { gallery.lastInView = undefined; });
+    scheduleUpdate();
+  };
+  window.addEventListener('pageshow', retryPreviews);
+  document.addEventListener('pointerup', retryPreviews, {passive: true});
+  reducedMotion.addEventListener('change', retryPreviews);
   document.addEventListener('portfolio:languagechange', () => {
     galleries.forEach(gallery => gallery.refreshLanguage?.());
     closeButton.setAttribute('aria-label', tr('close'));
