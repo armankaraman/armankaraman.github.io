@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.poster || variant?.poster) node.poster = data.poster || variant.poster;
     } else {
       node.alt = data.alt ?? title;
-      node.loading = 'eager';
+      node.loading = preview ? 'lazy' : 'eager';
       node.decoding = 'async';
     }
     if (preview && video) node.dataset.src = variant?.preview || data.src;
@@ -164,8 +164,6 @@ document.addEventListener('DOMContentLoaded', () => {
           .then(response => { if (!response.ok) throw new Error('Preview unavailable'); return response.json(); })
           .then(data => { if (data.thumbnail_url) visual.replaceChildren(makeMedia(data.thumbnail_url, projectText(project, 'title'), true)); }).catch(() => {}));
       } else visual.append(makeMedia(modelGallery ? project.preview : project.media, projectText(project, 'title'), true));
-      const previewImage = visual.querySelector('img');
-      if (previewImage) previewJobs.push(() => { previewImage.loading = 'eager'; });
       const copy = el('div', 'card-copy');
       copy.append(el('h3', '', projectText(project, 'title')), el('p', 'card-category', projectText(project, 'category')), el('p', 'card-description', projectText(project, 'description')), el('span', 'project-open', tr('viewProject')));
       card.append(visual, copy);
@@ -233,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         observer.disconnect();
         const worker = async () => { while (previewJobs.length) await previewJobs.shift()(); };
         worker(); worker();
-      }, {rootMargin: '100% 0px'});
+      }, {rootMargin: '35% 0px'});
       observer.observe(section);
     }
   }

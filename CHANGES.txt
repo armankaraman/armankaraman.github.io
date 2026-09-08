@@ -1,0 +1,16 @@
+ArmanKaraman.com performance/SEO patch — 2026-09-08
+
+Changed:
+- Hero video initial preload: auto -> metadata, poster remains preloaded with high priority.
+- After window load, hero video is allowed to buffer more without restarting the request.
+- Preview images are lazy-loaded; full media opened in the lightbox remains eager.
+- Removed the code that forced card images back to eager loading.
+- Sketchfab/preview prefetch starts closer to its section (35% viewport margin instead of 100%).
+- Preserved existing scroll-scrub logic, visible-card video autoplay, swipes, lightbox and localization.
+- Updated canonical, Open Graph, Twitter, sitemap and robots URLs to https://armankaraman.com/.
+- Updated cache-busting query string to 20260908-fast1.
+- Initial HTML language set to English; language switcher still updates it dynamically.
+
+Deployment:
+Copy these root files into the existing repository and keep the existing assets/ folder unchanged.
+Commit and push, then hard refresh once after GitHub Pages deploys.

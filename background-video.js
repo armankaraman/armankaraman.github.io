@@ -85,6 +85,10 @@
   window.addEventListener('scroll', updateTarget, {passive: true});
   window.addEventListener('resize', measure);
   window.addEventListener('pageshow', () => { measure(); primeVideo(); });
+  // Keep the first render light: HTML starts with metadata-only preload.
+  // Once the rest of the page has loaded, allow the browser to buffer more of the scrub video
+  // without restarting the request or resetting currentTime.
+  window.addEventListener('load', () => { video.preload = 'auto'; primeVideo(); }, {once: true});
   document.addEventListener('touchstart', primeVideo, {passive: true});
   document.addEventListener('click', primeVideo);
   document.addEventListener('visibilitychange', () => { measure(); primeVideo(); });
