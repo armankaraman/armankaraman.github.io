@@ -17,7 +17,7 @@ const projects = [
     media: "assets/project02.mp4",
     title: "National Currency Day",
     category: "3D",
-    year: "2025",
+    year: "2021",
     description: "3D motion piece created for Kazakhstan’s National Currency Day.",
     link: "",
     gallery: []
@@ -60,7 +60,7 @@ const projects = [
     media: "assets/project06.mp4",
     title: "Showreel",
     category: "Motion Design",
-    year: "2023",
+    year: "2021",
     description: "Motion design for a corporate brand presentation focused on global reach and professional services.",
     link: "",
     gallery: []
