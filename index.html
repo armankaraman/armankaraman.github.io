@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="description" content="Motion design, 3D and AI visuals by Arman Karaman. Selected projects, interactive 3D models and contact information.">
-  <title>Arman Karaman — Motion Designer • 3D • AI Visuals</title>
+  <title data-i18n="pageTitle">Arman Karaman — Motion Designer • 3D • AI Visuals</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preload" as="image" href="assets/previews/hero.jpg" fetchpriority="high">
   <link rel="stylesheet" href="style.css?v=20260908-accessibility">
@@ -26,7 +26,7 @@
   <header class="site-header">
     <div class="inner">
       <div class="brand-lockup">
-        <a class="brand" href="#top" aria-label="Arman Karaman — back to top">Arman Karaman</a>
+        <a class="brand" href="#top" aria-label="Arman Karaman — back to top" data-i18n-aria-label="brandBackTop">Arman Karaman</a>
         <span class="brand-tagline" data-i18n="brandTagline">Motion design, 3D, AI Visuals</span>
       </div>
       <div class="header-actions">
@@ -37,7 +37,7 @@
           <a href="#about" data-i18n="navAbout">About</a>
           <a href="#contact" data-i18n="navContact">Contact</a>
         </nav>
-        <div class="lang-switcher" role="group" aria-label="Language">
+        <div class="lang-switcher" role="group" aria-label="Language" data-i18n-aria-label="languageSelector">
           <button type="button" data-lang="kz" aria-pressed="false">KZ</button>
           <button type="button" data-lang="en" aria-pressed="true">EN</button>
           <button type="button" data-lang="ru" aria-pressed="false">RU</button>
@@ -47,7 +47,7 @@
   </header>
 
   <main>
-    <section id="work" class="section scroll-gallery" aria-label="Motion projects">
+    <section id="work" class="section scroll-gallery" aria-label="Motion projects" data-i18n-aria-label="motionProjectsLabel">
       <div class="gallery-sticky">
         <div class="container gallery-heading"><h2 data-i18n="motionHeading"></h2><p></p></div>
         <div class="perspective-stage" id="projects"></div>
@@ -55,7 +55,7 @@
       </div>
     </section>
 
-    <section id="stills" class="section scroll-gallery" aria-label="Static projects">
+    <section id="stills" class="section scroll-gallery" aria-label="Static projects" data-i18n-aria-label="staticProjectsLabel">
       <div class="gallery-sticky">
         <div class="container gallery-heading"><h2 data-i18n="stillsHeading"></h2><p></p></div>
         <div class="perspective-stage" id="static-projects"></div>
@@ -63,7 +63,7 @@
       </div>
     </section>
 
-    <section id="3d" class="section scroll-gallery" aria-label="3D models">
+    <section id="3d" class="section scroll-gallery" aria-label="3D models" data-i18n-aria-label="modelsLabel">
       <div class="gallery-sticky">
         <div class="container gallery-heading"><h2 data-i18n="modelsHeading"></h2><p></p></div>
         <div class="perspective-stage" id="three-d-projects"></div>
@@ -84,12 +84,12 @@
 
           <div class="about-details">
             <div>
-              <h2>Education</h2>
-              <p>University of Science and Technology Beijing (USTB), China</p>
+              <h2 data-i18n="education">Education</h2>
+              <p><span data-i18n="educationSchool">University of Science and Technology Beijing (USTB)</span>, <span data-i18n="educationCountry">China</span></p>
             </div>
             <div>
-              <h2>Languages</h2>
-              <p>Kazakh &middot; Russian &middot; English &middot; Chinese</p>
+              <h2 data-i18n="languages">Languages</h2>
+              <p data-i18n="languagesList">Kazakh &middot; Russian &middot; English &middot; Chinese</p>
             </div>
           </div>
         </div>
@@ -115,7 +115,7 @@
         <p data-i18n="contactIntro">For commissions, collaborations or inquiries:</p>
         <p><a class="email" href="mailto:karaman.arman@gmail.com">karaman.arman@gmail.com</a></p>
         <form class="contact-form" action="https://formsubmit.co/karaman.arman@gmail.com" method="POST">
-          <input type="hidden" name="_subject" value="New portfolio inquiry">
+          <input type="hidden" name="_subject" value="New portfolio inquiry" data-i18n-value="inquirySubject">
           <input type="hidden" name="_template" value="table">
           <input type="text" name="_honey" class="contact-honey" tabindex="-1" autocomplete="off" aria-hidden="true">
           <div class="contact-fields">
@@ -151,17 +151,17 @@
         <h2 class="lightbox-title" id="project-dialog-title"></h2>
         <p class="lightbox-year"></p>
         <p class="lightbox-description"></p>
-        <a class="lightbox-link" target="_blank" rel="noopener">View project</a>
+        <a class="lightbox-link" target="_blank" rel="noopener" data-i18n="openProject">View project</a>
       </aside>
     </div>
   </div>
 
   <script defer src="projects.js?v=20260908-fast2"></script>
   <script defer src="static-projects.js?v=20260908-fast2"></script>
-  <script defer src="3d-projects.js?v=20260908-fast2"></script>
+  <script defer src="3d-projects.js?v=20260908-i18n-audit"></script>
   <script defer src="media-variants.js?v=20260908-fast2"></script>
-  <script defer src="localization.js?v=20260908-fast2"></script>
-  <script defer src="script.js?v=20260908-accessibility"></script>
+  <script defer src="localization.js?v=20260908-i18n-audit"></script>
+  <script defer src="script.js?v=20260908-gallery-keyboard"></script>
   <script defer src="background-video.js?v=20260908-accessibility"></script>
 </body>
 </html>

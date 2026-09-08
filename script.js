@@ -470,11 +470,23 @@ document.addEventListener('DOMContentLoaded', () => {
       if (modalOpen || !event.isPrimary || event.button !== 0) return;
       drag = {gallery, id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false};
     });
-    gallery.stage.addEventListener('keydown', event => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || modalOpen) return;
-      event.preventDefault();
-      stepGallery(gallery, event.key === 'ArrowRight' ? 1 : -1);
-    });
+  });
+  function activeViewportGallery() {
+    const viewportCenter = innerHeight / 2;
+    return galleries
+      .map(gallery => ({gallery, rect: gallery.section.getBoundingClientRect()}))
+      .filter(({rect}) => rect.bottom > 0 && rect.top < innerHeight)
+      .sort((a, b) => Math.abs((a.rect.top + a.rect.bottom) / 2 - viewportCenter) - Math.abs((b.rect.top + b.rect.bottom) / 2 - viewportCenter))[0]?.gallery;
+  }
+  function isEditableTarget(target) {
+    return target instanceof Element && Boolean(target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])'));
+  }
+  document.addEventListener('keydown', event => {
+    if (modalOpen || !['ArrowLeft', 'ArrowRight'].includes(event.key) || isEditableTarget(event.target)) return;
+    const gallery = activeViewportGallery();
+    if (!gallery) return;
+    event.preventDefault();
+    stepGallery(gallery, event.key === 'ArrowRight' ? 1 : -1);
   });
   window.addEventListener('pointermove', event => {
     if (!drag || event.pointerId !== drag.id) return;
@@ -558,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
       closeGallery();
       return;
     }
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+    if ((event.key === 'ArrowLeft' || event.key === 'ArrowRight') && !isEditableTarget(event.target)) {
       event.preventDefault();
       lightbox.stepMedia?.(event.key === 'ArrowRight' ? 1 : -1);
       return;
