@@ -10,6 +10,6 @@ const staticProjects = [
     media: 'Still04.jpg', description: 'Presentation design developed for KPMG Kazakhstan around research on the real unemployment rate. The visual system combines editorial typography, data-driven layouts and restrained corporate graphics to make a complex analytical topic easier to navigate.', gallery: ['Still-4-2.jpg', 'Still-4-3.jpg']},
   {id: 'still05', title: 'KPMG Success Story Presentation', category: 'Stills', 
     media: 'Still05.jpg', description: 'Corporate presentation design for a KPMG consulting success story. The project focused on building a clean visual hierarchy and transforming business content into a structured, polished presentation aligned with the KPMG brand.', gallery: ['Still-5-2.jpg', 'Still-5-3.jpg']},
-  {id: 'still06', media: 'still06.jpg', title: 'Packaging Artwork Review & Coordination', category: 'Stills', 
-    description: 'Packaging artwork development and coordination for Tetra Pak projects. My role included artwork adaptation, technical review, pre-production checks and coordination between design requirements and production specifications across multiple packaging variants.', gallery: []}
+  {id: 'still06', media: 'still06.jpg', title: 'SilkPay', category: 'Mobile App UI Design',
+    description: 'Mobile interface design for SilkPay, created in Figma. The project showcases the app’s screens, visual style, and interface layouts.', gallery: ['still06-2.jpg', 'still06-3.jpg']}
 ];
