@@ -20,7 +20,7 @@
       inquirySubject: 'Портфолио бойынша жаңа сұрау', follow: 'Әлеуметтік желілер:',
       brandBackTop: 'Arman Karaman — басты бетке оралу', languageSelector: 'Тіл', motionProjectsLabel: 'Motion жобалары', staticProjectsLabel: 'Статикалық жобалар', modelsLabel: '3D модельдер',
       projects: 'жоба', models: 'модель', viewProject: 'Жобаны көру ↗', viewModel: 'Модельді көру', openSketchfab: 'Sketchfab-та ашу ↗',
-      openProject: 'Жобаны көру', previousProject: 'Алдыңғы жоба', nextProject: 'Келесі жоба', showProject: 'Көрсету: {title}', openCard: 'Ашу: {title}',
+      openProject: 'Жобаны көру', previousProject: 'Алдыңғы жоба', nextProject: 'Келесі жоба', previousItem: 'Алдыңғы элемент', nextItem: 'Келесі элемент', showProject: 'Көрсету: {title}', openCard: 'Ашу: {title}',
       previewPlaceholder: 'Превью кейін қосылады', pdfDocument: 'PDF құжаты', openPdf: 'PDF ашу', pdfFallback: 'Бұл құжатты көру үшін PDF ашыңыз.', mediaUnavailable: 'Медиа қолжетімсіз — файл кейін қосылады', preview3dUnavailable: '3D превью қолжетімсіз',
       mainVideo: 'Негізгі видео', video: 'Видео', interactiveModel: '{title} — интерактивті 3D модель', mediaLabel: '{title}, медиа {number}', close: 'Жабу'
     },
@@ -41,7 +41,7 @@
       inquirySubject: 'New portfolio inquiry', follow: 'Follow:',
       brandBackTop: 'Arman Karaman — back to top', languageSelector: 'Language', motionProjectsLabel: 'Motion projects', staticProjectsLabel: 'Static projects', modelsLabel: '3D models',
       projects: 'projects', models: 'models', viewProject: 'View project ↗', viewModel: 'View model', openSketchfab: 'Open on Sketchfab ↗',
-      openProject: 'View project', previousProject: 'Previous project', nextProject: 'Next project', showProject: 'Show {title}', openCard: 'Open {title}',
+      openProject: 'View project', previousProject: 'Previous project', nextProject: 'Next project', previousItem: 'Previous item', nextItem: 'Next item', showProject: 'Show {title}', openCard: 'Open {title}',
       previewPlaceholder: 'Preview placeholder — image to be added', pdfDocument: 'PDF document', openPdf: 'Open PDF', pdfFallback: 'Use Open PDF to view this document.', mediaUnavailable: 'Media unavailable — file to be added', preview3dUnavailable: '3D preview unavailable',
       mainVideo: 'Main video', video: 'Video', interactiveModel: '{title} — interactive 3D model', mediaLabel: '{title}, media {number}', close: 'Close'
     },
@@ -62,7 +62,7 @@
       inquirySubject: 'Новый запрос с портфолио', follow: 'Соцсети:',
       brandBackTop: 'Arman Karaman — вернуться наверх', languageSelector: 'Язык', motionProjectsLabel: 'Motion-проекты', staticProjectsLabel: 'Статические проекты', modelsLabel: '3D-модели',
       projects: 'проектов', models: 'моделей', viewProject: 'Смотреть проект ↗', viewModel: 'Смотреть модель', openSketchfab: 'Открыть на Sketchfab ↗',
-      openProject: 'Смотреть проект', previousProject: 'Предыдущий проект', nextProject: 'Следующий проект', showProject: 'Показать: {title}', openCard: 'Открыть: {title}',
+      openProject: 'Смотреть проект', previousProject: 'Предыдущий проект', nextProject: 'Следующий проект', previousItem: 'Предыдущий элемент', nextItem: 'Следующий элемент', showProject: 'Показать: {title}', openCard: 'Открыть: {title}',
       previewPlaceholder: 'Превью будет добавлено позже', pdfDocument: 'PDF-документ', openPdf: 'Открыть PDF', pdfFallback: 'Откройте PDF, чтобы посмотреть документ.', mediaUnavailable: 'Медиа недоступно — файл будет добавлен позже', preview3dUnavailable: '3D-превью недоступно',
       mainVideo: 'Главное видео', video: 'Видео', interactiveModel: '{title} — интерактивная 3D-модель', mediaLabel: '{title}, медиа {number}', close: 'Закрыть'
     }

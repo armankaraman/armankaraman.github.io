@@ -70,6 +70,11 @@ h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacin
 .lightbox-link { display: none; color: var(--accent); font-weight: 600; text-decoration: none; }
 .lightbox-link.is-visible { display: inline-block; }
 .lightbox .close { position: fixed; color: var(--text); font-size: 20px; z-index: 1; cursor: pointer; }
+.lightbox-nav { position: fixed; top: 50%; z-index: 2; width: 48px; height: 64px; padding: 0; transform: translateY(-50%); border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 999px; background: rgba(17, 17, 17, 0.62); color: rgba(255, 255, 255, 0.62); font: inherit; font-size: 24px; line-height: 1; cursor: pointer; backdrop-filter: blur(8px); transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease, opacity 160ms ease; }
+.lightbox-nav:hover, .lightbox-nav:focus-visible { border-color: rgba(255, 255, 255, 0.55); background: rgba(28, 28, 28, 0.9); color: var(--text); }
+.lightbox-nav-previous { left: clamp(8px, 2vw, 28px); }
+.lightbox-nav-next { right: clamp(8px, 2vw, 28px); }
+.lightbox-active-media { touch-action: pan-y; }
 @media (max-width: 640px) {
   .brand { font-size: 16px; }
   .inner { padding: 0px 20px; }
@@ -85,6 +90,7 @@ h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacin
   .lightbox-media { min-height: 0px; max-height: none; }
   .lightbox-gallery { grid-template-columns: 1fr; }
   .lightbox-info { padding: 24px; }
+  .lightbox-nav { width: 44px; height: 56px; font-size: 22px; }
   .timeline li { grid-template-columns: 1fr auto; gap: 6px 16px; padding: 12px 0px; font-size: 13px; }
   .timeline-company { grid-area: 2 / 1; }
   .timeline .muted-small { grid-area: 1 / 2 / span 2; align-self: center; }

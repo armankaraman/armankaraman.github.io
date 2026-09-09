@@ -346,16 +346,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (moving) scheduleUpdate();
     else lastFrame = 0;
   }
-  function openGallery(project, trigger) {
+  function openGallery(project, trigger, initialMediaIndex = 0) {
+    const wasOpen = modalOpen;
     galleryDiscovery?.abort();
     galleryDiscovery = new AbortController();
     const discoverySignal = galleryDiscovery.signal;
     opener = trigger;
     activeProject = project;
-    savedScroll = scrollY;
-    bodyStyle = document.body.getAttribute('style');
+    if (!wasOpen) {
+      savedScroll = scrollY;
+      bodyStyle = document.body.getAttribute('style');
+    }
     modalOpen = true;
     document.querySelectorAll('.perspective-card video').forEach(video => { video.pause(); video.dataset.playing = 'false'; });
+    releaseMedia(lbMedia);
     lbMedia.replaceChildren();
     const items = [project.media, ...(project.gallery || [])].filter(Boolean);
     const active = el('div', 'lightbox-active-media');
@@ -372,7 +376,11 @@ document.addEventListener('DOMContentLoaded', () => {
       active.querySelector('video')?.play().catch(() => {});
       [...navigation.children].forEach((button, i) => button.setAttribute('aria-pressed', String(i === selectedMediaIndex)));
     }
-    lightbox.stepMedia = direction => select(selectedMediaIndex + direction);
+    lightbox.stepMedia = direction => {
+      const nextIndex = selectedMediaIndex + direction;
+      if (items.length && nextIndex >= 0 && nextIndex < items.length) select(nextIndex);
+      else stepLightboxProject(direction);
+    };
     function appendPreview(item, index) {
       const data = mediaData(item);
       const button = el('button', 'lightbox-gallery-item');
@@ -402,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
         items.forEach(appendPreview);
         lbMedia.append(navigation);
       }
-      select(0);
+      select(initialMediaIndex < 0 ? items.length - 1 : initialMediaIndex);
     } else active.append(makeMedia(null, projectText(project, 'title')));
     for (const [selector, value] of Object.entries({'.lightbox-category': projectText(project, 'category') || (project.sketchfab ? '3D' : ''), '.lightbox-title': projectText(project, 'title'), '.lightbox-year': project.year, '.lightbox-description': projectText(project, 'description')})) lightbox.querySelector(selector).textContent = value || '';
     const link = lightbox.querySelector('.lightbox-link');
@@ -422,7 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.assign(document.body.style, {position: 'fixed', top: `-${savedScroll}px`, width: '100%', overflow: 'hidden'});
     document.querySelector('main').inert = document.querySelector('header').inert = true;
     lightbox.scrollTop = 0;
-    closeButton.focus({preventScroll: true});
+    if (!wasOpen) closeButton.focus({preventScroll: true});
     if (project.discoverMedia === true) {
       discoverGallery(project, discoverySignal).then(files => {
         if (discoverySignal.aborted || !modalOpen) return;
@@ -457,6 +465,14 @@ document.addEventListener('DOMContentLoaded', () => {
   createGallery('projects', projects);
   createGallery('static-projects', staticProjects);
   createGallery('three-d-projects', threeDProjects, true);
+  function stepLightboxProject(direction) {
+    if (!modalOpen || !activeProject) return;
+    const gallery = galleries.find(item => item.items.includes(activeProject));
+    if (!gallery?.items.length) return;
+    const currentIndex = gallery.items.indexOf(activeProject);
+    const nextIndex = (currentIndex + direction + gallery.items.length) % gallery.items.length;
+    openGallery(gallery.items[nextIndex], gallery.cards[nextIndex], direction < 0 ? -1 : 0);
+  }
   function stepGallery(gallery, direction) {
     if (modalOpen) return;
     gallery.selectedIndex = clamp(gallery.selectedIndex + direction, 0, gallery.cards.length - 1);
@@ -513,6 +529,36 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.addEventListener('pointerup', finishDrag);
   window.addEventListener('pointercancel', finishDrag);
+  const previousLightboxButton = lightbox.querySelector('.lightbox-nav-previous');
+  const nextLightboxButton = lightbox.querySelector('.lightbox-nav-next');
+  previousLightboxButton.addEventListener('click', () => lightbox.stepMedia?.(-1));
+  nextLightboxButton.addEventListener('click', () => lightbox.stepMedia?.(1));
+  let lightboxSwipe = null;
+  lightbox.addEventListener('pointerdown', event => {
+    if (!modalOpen || event.pointerType === 'mouse' || !event.isPrimary || !event.target.closest('.lightbox-active-media')) return;
+    lightboxSwipe = {id: event.pointerId, x: event.clientX, y: event.clientY, horizontal: false};
+  });
+  lightbox.addEventListener('pointermove', event => {
+    if (!lightboxSwipe || event.pointerId !== lightboxSwipe.id) return;
+    const dx = event.clientX - lightboxSwipe.x;
+    const dy = event.clientY - lightboxSwipe.y;
+    if (!lightboxSwipe.horizontal && Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { lightboxSwipe = null; return; }
+    if (!lightboxSwipe.horizontal && Math.abs(dx) > 12 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      lightboxSwipe.horizontal = true;
+      lightbox.setPointerCapture(event.pointerId);
+    }
+    if (lightboxSwipe.horizontal) event.preventDefault();
+  }, {passive: false});
+  function finishLightboxSwipe(event) {
+    if (!lightboxSwipe || event.pointerId !== lightboxSwipe.id) return;
+    const {id, x, horizontal} = lightboxSwipe;
+    lightboxSwipe = null;
+    if (lightbox.hasPointerCapture(id)) lightbox.releasePointerCapture(id);
+    const distance = event.clientX - x;
+    if (event.type === 'pointerup' && horizontal && Math.abs(distance) >= 50) lightbox.stepMedia?.(distance < 0 ? 1 : -1);
+  }
+  lightbox.addEventListener('pointerup', finishLightboxSwipe);
+  lightbox.addEventListener('pointercancel', finishLightboxSwipe);
   document.addEventListener('click', event => {
     if (performance.now() < suppressClickUntil && event.target.closest('.perspective-stage')) {
       event.preventDefault();
