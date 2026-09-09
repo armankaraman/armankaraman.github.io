@@ -9,7 +9,7 @@ const projects = [
     link: "",
     gallery: [
       "assets/project01-2.mp4",
-      "assets/project01-3.jpg"
+      "assets/project01-3.jpg?v=20260909-2"
     ]
   },
   {

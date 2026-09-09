@@ -35,9 +35,5 @@ const mediaVariants = {
   "assets/project06.mp4": {
     "poster": "assets/previews/project06.jpg",
     "preview": "assets/previews/project06.mp4"
-  },
-  "assets/project01-3.jpg": {
-    "poster": "assets/previews/project01-3.jpg",
-    "preview": "assets/previews/project01-3.jpg"
   }
 };
