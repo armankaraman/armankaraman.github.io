@@ -3,6 +3,7 @@
   const video = document.getElementById('background-video');
   if (!video) return;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+  const mobileInput = matchMedia('(max-width: 640px), (pointer: coarse)');
   const lightbox = document.getElementById('lightbox');
   const blocked = () => document.hidden || lightbox?.getAttribute('aria-hidden') === 'false';
   const interval = 1 / 24;
@@ -62,12 +63,23 @@
   }
   function render(now) {
     frame = 0;
-    if (!duration || video.readyState < 2 || video.seeking || blocked() || priming) {
+    if (blocked() || priming) {
       lastTime = 0;
       return;
     }
+    if (!duration || video.readyState < 2) return;
     const dt = Math.min(50, lastTime ? now - lastTime : 16.7);
     lastTime = now;
+    if (mobileInput.matches) {
+      position += (target - position) * (reducedMotion.matches ? 1 : 1 - Math.exp(-dt / 140));
+      if (Math.abs(target - position) < 0.015) position = target;
+      const seekTime = Math.min(duration, Math.max(0.001, position));
+      if (!video.seeking && Math.abs(video.currentTime - seekTime) >= 0.001) video.currentTime = seekTime;
+      if (position !== target) schedule();
+      else lastTime = 0;
+      return;
+    }
+    if (video.seeking) return;
     position += (target - position) * (reducedMotion.matches ? 1 : 1 - Math.exp(-dt / 100));
     if (Math.abs(target - position) < 0.015) position = target;
     // Clamp AFTER rounding: never request a frame beyond the duration.
@@ -85,6 +97,7 @@
     measure();
   }
   video.addEventListener('loadedmetadata', metadata);
+  video.addEventListener('durationchange', metadata);
   video.addEventListener('loadeddata', () => { primeVideo(); schedule(); });
   video.addEventListener('canplay', () => { primeVideo(); schedule(); });
   video.addEventListener('seeked', schedule);
@@ -122,4 +135,9 @@
   if (video.readyState >= 2) primeVideo();
   if (video.error) video.dispatchEvent(new Event('error'));
   applyMotionPreference();
+  if (mobileInput.matches && !reducedMotion.matches) {
+    video.preload = 'auto';
+    video.load();
+    video.pause();
+  }
 })();

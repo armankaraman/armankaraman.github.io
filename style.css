@@ -22,6 +22,11 @@ main { position: relative; z-index: 1; }
 .about-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-top: 40px; }
 .about-details h2 { margin-bottom: 12px; }
 .about-details p { margin: 0px; }
+.about-details :is([data-i18n="educationMinzuSchool"], [data-i18n="educationSchool"], [data-i18n="languagesList"]) { font-size: 12px; }
+.about-details :is([data-i18n="educationMinzuProgram"], [data-i18n="educationDegree"]) { color: var(--muted); font-size: 11px; }
+@media (min-width: 1024px) {
+  .about-details :is([data-i18n="educationMinzuSchool"], [data-i18n="educationSchool"]) { white-space: nowrap; }
+}
 h2 { font-size: 13px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; margin: 0px 0px 32px; color: var(--muted); }
 .muted { color: var(--muted); }
 .timeline { list-style: none; padding: 0px; margin: 0px; border-top: 1px solid var(--line); }

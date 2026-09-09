@@ -12,10 +12,10 @@
       aboutP1: 'Мен Алматыда, Қазақстанда тұратын Motion Designer және 3D Artist маманымын.',
       aboutP2: 'Motion design, 3D, AI көмегімен жасалатын визуалдар және коммерциялық контент бағыттарында жұмыс істеймін. Дизайн, анимация және визуалды сторителлингті біріктіремін.',
       aboutP3: 'KPMG, Tetra Pak, Sergek Group компанияларында және жылжымайтын мүлік жобаларында жұмыс істедім. Негізгі назарым — сапалы визуал, түсінікті коммуникация және өндіріске дайын нәтиже.',
-      education: 'Білім', educationSchool: 'University of Science and Technology Beijing (USTB)', educationCountry: 'Қытай',
+      education: 'Білім', educationMinzuSchool: 'Minzu University of China', educationMinzuProgram: 'Қытай тілі бағдарламасы · 2008–2009', educationSchool: 'University of Science and Technology Beijing (USTB)', educationDegree: 'Арт-дизайн мамандығы бойынша бакалавр дәрежесі · 2009–2013',
       languages: 'Тілдер', languagesList: 'Қазақ · Орыс · Ағылшын · Қытай',
       experience: 'Тәжірибе',
-      roleMotion: 'Motion дизайнер', role3dMotion: '3D Motion дизайнер', roleDesignDev: 'Дизайн әзірлеуші / үйлестіруші', roleSenior: 'Аға графикалық / motion дизайнер', roleGraphic3d: 'Графикалық дизайнер / 3D конструктор', present: 'Қазір',
+      roleMotion: 'Motion дизайнер', role3dMotion: '3D Motion дизайнер', roleDesignDev: 'Дизайн әзірлеуші / үйлестіруші', roleSenior: 'Аға графикалық / motion дизайнер', roleGraphic3d: 'Графикалық дизайнер / 3D техникалық дизайнер', present: 'Қазір',
       contact: 'Байланыс', contactIntro: 'Жоба, ынтымақтастық немесе басқа сұрақтар бойынша:', name: 'Аты', email: 'Email', message: 'Хабарлама', send: 'Жіберу',
       inquirySubject: 'Портфолио бойынша жаңа сұрау', follow: 'Әлеуметтік желілер:',
       brandBackTop: 'Arman Karaman — басты бетке оралу', languageSelector: 'Тіл', motionProjectsLabel: 'Motion жобалары', staticProjectsLabel: 'Статикалық жобалар', modelsLabel: '3D модельдер',
@@ -33,10 +33,10 @@
       aboutP1: "I'm a Motion Designer and 3D Artist based in Almaty, Kazakhstan.",
       aboutP2: 'I work across motion design, 3D, AI-assisted visuals and commercial content, combining design, animation and visual storytelling.',
       aboutP3: 'My background includes work with KPMG, Tetra Pak, Sergek Group and real estate projects, with a focus on polished visuals, clear communication and production-ready execution.',
-      education: 'Education', educationSchool: 'University of Science and Technology Beijing (USTB)', educationCountry: 'China',
+      education: 'Education', educationMinzuSchool: 'Minzu University of China', educationMinzuProgram: 'Chinese Language Program · 2008–2009', educationSchool: 'University of Science and Technology Beijing (USTB)', educationDegree: 'Bachelor’s Degree in Art Design · 2009–2013',
       languages: 'Languages', languagesList: 'Kazakh · Russian · English · Chinese',
       experience: 'Experience',
-      roleMotion: 'Motion Designer', role3dMotion: '3D Motion Designer', roleDesignDev: 'Design Developer / Coordinator', roleSenior: 'Senior Graphic / Motion Designer', roleGraphic3d: 'Graphic Designer / 3D Constructor', present: 'Present',
+      roleMotion: 'Motion Designer', role3dMotion: '3D Motion Designer', roleDesignDev: 'Design Developer / Coordinator', roleSenior: 'Senior Graphic / Motion Designer', roleGraphic3d: 'Graphic Designer / 3D Technical Designer', present: 'Present',
       contact: 'Contact', contactIntro: 'For commissions, collaborations or inquiries:', name: 'Name', email: 'Email', message: 'Message', send: 'Send message',
       inquirySubject: 'New portfolio inquiry', follow: 'Follow:',
       brandBackTop: 'Arman Karaman — back to top', languageSelector: 'Language', motionProjectsLabel: 'Motion projects', staticProjectsLabel: 'Static projects', modelsLabel: '3D models',
@@ -54,10 +54,10 @@
       aboutP1: 'Я Motion Designer и 3D Artist из Алматы, Казахстан.',
       aboutP2: 'Работаю с motion design, 3D, AI-визуалами и коммерческим контентом, объединяя дизайн, анимацию и визуальный сторителлинг.',
       aboutP3: 'Работал с KPMG, Tetra Pak, Sergek Group и проектами в сфере недвижимости. Основной фокус — качественный визуал, понятная коммуникация и готовый к продакшену результат.',
-      education: 'Образование', educationSchool: 'University of Science and Technology Beijing (USTB)', educationCountry: 'Китай',
+      education: 'Образование', educationMinzuSchool: 'Minzu University of China', educationMinzuProgram: 'Программа китайского языка · 2008–2009', educationSchool: 'University of Science and Technology Beijing (USTB)', educationDegree: 'Степень бакалавра по специальности «Арт-дизайн» · 2009–2013',
       languages: 'Языки', languagesList: 'Казахский · Русский · Английский · Китайский',
       experience: 'Опыт',
-      roleMotion: 'Моушн-дизайнер', role3dMotion: '3D-моушн-дизайнер', roleDesignDev: 'Дизайн-разработчик / координатор', roleSenior: 'Старший графический / моушн-дизайнер', roleGraphic3d: 'Графический дизайнер / 3D-конструктор', present: 'Наст. время',
+      roleMotion: 'Моушн-дизайнер', role3dMotion: '3D-моушн-дизайнер', roleDesignDev: 'Дизайн-разработчик / координатор', roleSenior: 'Старший графический / моушн-дизайнер', roleGraphic3d: 'Графический дизайнер / 3D-технический дизайнер', present: 'Наст. время',
       contact: 'Контакты', contactIntro: 'По вопросам проектов, сотрудничества и другим запросам:', name: 'Имя', email: 'Email', message: 'Сообщение', send: 'Отправить',
       inquirySubject: 'Новый запрос с портфолио', follow: 'Соцсети:',
       brandBackTop: 'Arman Karaman — вернуться наверх', languageSelector: 'Язык', motionProjectsLabel: 'Motion-проекты', staticProjectsLabel: 'Статические проекты', modelsLabel: '3D-модели',
@@ -68,7 +68,7 @@
     }
   };
 
-  const projectText = {
+  const projectTranslations = {
     project01: {
       kz: {title: 'Taulan тұрғын үй кешені', category: 'AI визуалдар', description: 'Taulan тұрғын үй кешеніне арналған AI көмегімен жасалған архитектуралық визуалдар мен motion design. Негізгі акцент — атмосфера, өмір салты және премиум презентация.'},
       ru: {title: 'Жилой комплекс Taulan', category: 'AI-визуалы', description: 'Архитектурные AI-визуалы и motion design для жилого комплекса Taulan с акцентом на атмосферу, образ жизни и премиальную подачу.'}
@@ -167,7 +167,8 @@
 
   function projectField(project, field) {
     if (!project) return '';
-    if (project.id && projectText[project.id]?.[language]?.[field] !== undefined) return projectText[project.id][language][field];
+    const translation = language === 'en' ? undefined : projectTranslations[project.id]?.[language]?.[field];
+    if (translation !== undefined) return translation;
     if (project.sketchfab && field === 'description') {
       const isCharacter = /character model/i.test(project.description || '');
       return isCharacter ? generic3dCharacter[language] : generic3d[language];
