@@ -3,6 +3,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const tr = (key, vars) => i18n?.t(key, vars) ?? key;
   const projectText = (project, field) => i18n?.projectField(project, field) ?? project?.[field] ?? '';
   const header = document.querySelector('.site-header');
+  const contactForm = document.querySelector('.contact-form');
+  const contactStatus = document.querySelector('.contact-form-status');
+  const contactSubmit = contactForm?.querySelector('button[type="submit"]');
+  let contactSubmitting = false;
+  function updateContactStatus(state = contactStatus?.dataset.state) {
+    if (!contactStatus || !state) return;
+    contactStatus.textContent = tr(state === 'success' ? 'contactSuccess' : 'contactError');
+  }
+  contactForm?.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (contactSubmitting) return;
+    contactSubmitting = true;
+    contactForm.dataset.submitting = 'true';
+    contactSubmit.disabled = true;
+    contactSubmit.textContent = tr('sending');
+    contactStatus.hidden = true;
+    delete contactStatus.dataset.state;
+    try {
+      const response = await fetch(contactForm.action, {
+        method: 'POST',
+        body: new FormData(contactForm),
+        headers: {Accept: 'application/json'}
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || String(result?.success).toLowerCase() === 'false') throw new Error('Form submission failed');
+      contactForm.reset();
+      contactStatus.dataset.state = 'success';
+    } catch {
+      contactStatus.dataset.state = 'error';
+    } finally {
+      contactSubmitting = false;
+      delete contactForm.dataset.submitting;
+      contactSubmit.disabled = false;
+      contactSubmit.textContent = tr('send');
+      updateContactStatus();
+      contactStatus.hidden = false;
+    }
+  });
   const measureHeader = () => document.documentElement.style.setProperty('--header-height', `${header.offsetHeight}px`);
   measureHeader();
   new ResizeObserver(measureHeader).observe(header);
@@ -590,6 +628,8 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('pointerup', retryPreviews, {passive: true});
   reducedMotion.addEventListener('change', retryPreviews);
   document.addEventListener('portfolio:languagechange', () => {
+    if (contactSubmit && contactSubmitting) contactSubmit.textContent = tr('sending');
+    updateContactStatus();
     galleries.forEach(gallery => gallery.refreshLanguage?.());
     closeButton.setAttribute('aria-label', tr('close'));
     if (modalOpen && activeProject) {
