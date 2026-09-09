@@ -20,7 +20,10 @@ const projects = [
     year: "2021",
     description: "A 3D motion piece created for Kazakhstan’s National Currency Day. The work uses animation and branded visual elements to present the occasion in a concise, engaging format.",
     link: "",
-    gallery: []
+    gallery: [
+      "assets/project02-2.jpg",
+      "assets/project02-3.jpg"
+    ]
   },
   {
     id: "project03",
