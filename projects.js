@@ -61,7 +61,7 @@ const projects = [
     title: "Showreel",
     category: "Motion Design",
     year: "2021",
-    description: "Corporate motion graphics developed for a brand presentation about global reach and professional services. The work uses restrained animation and clear visual hierarchy to support information delivery.",
+    description: "A selection of motion design work from different projects and personal experiments, combining animation, compositing, typography and 3D.",
     link: "",
     gallery: []
   }
