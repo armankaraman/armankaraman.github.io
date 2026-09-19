@@ -214,3 +214,9 @@ main > .section { scroll-snap-align: start; scroll-snap-stop: normal; }
   .about-portrait { filter: none; }
   .perspective-card { will-change: auto; }
 }
+
+/* Use installed CJK fonts without loading an extra font file. */
+html:lang(zh) body { font-family: Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+html:lang(zh) .brand-tagline, html:lang(zh) .nav a { letter-spacing: normal; }
+.lang-switcher { flex-shrink: 0; }
+.lang-switcher button:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }

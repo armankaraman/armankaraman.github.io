@@ -1,6 +1,6 @@
 (() => {
   const STORAGE_KEY = 'portfolio-language';
-  const supported = ['kz', 'en', 'ru'];
+  const supported = ['kz', 'en', 'ru', 'zh'];
 
   const ui = {
     kz: {
@@ -68,6 +68,76 @@
     }
   };
 
+  ui.zh = {
+    "pageTitle": "Arman Karaman — 动态设计师 · 3D · AI 视觉",
+    "brandTagline": "动态设计、3D 与 AI 视觉",
+    "navMotion": "动态设计",
+    "navStills": "平面作品",
+    "nav3d": "3D",
+    "navAbout": "关于我",
+    "navContact": "联系",
+    "motionHeading": "动态设计",
+    "stillsHeading": "平面作品",
+    "modelsHeading": "3D 模型",
+    "aboutHeading": "关于我",
+    "aboutP1": "我是 Arman Karaman，一名常驻哈萨克斯坦阿拉木图的动态设计师和 3D 艺术家。",
+    "aboutP2": "我的创作涵盖动态设计、3D、AI 辅助视觉与商业内容，将设计、动画和视觉叙事相结合。",
+    "aboutP3": "我曾参与 KPMG、利乐（Tetra Pak）、Sergek Group 以及房地产领域的项目，注重视觉品质、清晰的表达与可落地的制作。",
+    "education": "教育背景",
+    "educationMinzuSchool": "中央民族大学",
+    "educationMinzuProgram": "汉语进修课程 · 2008–2009",
+    "educationSchool": "北京科技大学（USTB）",
+    "educationDegree": "艺术设计学士 · 2009–2013",
+    "languages": "语言",
+    "languagesList": "哈萨克语 · 俄语 · 英语 · 汉语",
+    "experience": "工作经历",
+    "roleMotion": "动态设计师",
+    "role3dMotion": "3D 动态设计师",
+    "roleDesignDev": "设计开发 / 项目协调",
+    "roleSenior": "高级平面 / 动态设计师",
+    "roleGraphic3d": "平面 / 3D 技术设计师",
+    "present": "至今",
+    "contact": "联系",
+    "contactIntro": "欢迎联系我，洽谈项目、合作或其他事宜：",
+    "name": "姓名",
+    "email": "电子邮箱",
+    "message": "留言",
+    "send": "发送留言",
+    "sending": "正在发送…",
+    "contactSuccess": "留言已发送。",
+    "contactError": "发送失败，请重试。",
+    "inquirySubject": "来自作品集网站的新咨询",
+    "follow": "社交平台：",
+    "brandBackTop": "Arman Karaman — 返回顶部",
+    "languageSelector": "语言",
+    "motionProjectsLabel": "动态设计作品",
+    "staticProjectsLabel": "平面作品",
+    "modelsLabel": "3D 模型",
+    "projects": "个项目",
+    "models": "个模型",
+    "viewProject": "查看项目 ↗",
+    "viewModel": "查看模型",
+    "openSketchfab": "在 Sketchfab 中打开 ↗",
+    "openProject": "查看项目",
+    "previousProject": "上一个项目",
+    "nextProject": "下一个项目",
+    "previousItem": "上一项",
+    "nextItem": "下一项",
+    "showProject": "查看 {title}",
+    "openCard": "打开 {title}",
+    "previewPlaceholder": "预览图待添加",
+    "pdfDocument": "PDF 文档",
+    "openPdf": "打开 PDF",
+    "pdfFallback": "请打开 PDF 查看此文档。",
+    "mediaUnavailable": "媒体暂不可用，文件待添加",
+    "preview3dUnavailable": "3D 预览暂不可用",
+    "mainVideo": "主视频",
+    "video": "视频",
+    "interactiveModel": "{title} — 交互式 3D 模型",
+    "mediaLabel": "{title}，第 {number} 项媒体",
+    "close": "关闭"
+};
+
   const projectTranslations = {
     project01: {
       kz: {category: 'AI визуалдар', description: 'Taulan Residential Complex үшін жасалған коммерциялық motion контент. Жұмыс атмосфера мен премиум ұсынуға басымдық бере отырып, AI көмегімен жасалған архитектуралық визуалдарды, анимацияны және композитингті біріктіреді.'},
@@ -119,20 +189,109 @@
     }
   };
 
+  const chineseProjects = {
+    "project01": {
+        "title": "Taulan 住宅项目",
+        "category": "AI 视觉",
+        "description": "为 Taulan 住宅项目制作的商业动态视觉作品。结合 AI 辅助建筑视觉、动画与合成，呈现空间氛围与高端质感。"
+    },
+    "project02": {
+        "title": "哈萨克斯坦国家货币日",
+        "category": "3D",
+        "description": "为哈萨克斯坦国家货币日制作的 3D 动画，通过动画与品牌视觉元素，以简洁、生动的方式呈现节日主题。"
+    },
+    "project03": {
+        "title": "Sergek HR 机器人",
+        "category": "3D",
+        "description": "为 Sergek Group 人力资源宣传活动制作的动态视觉作品，融合角色动画、3D 视觉与品牌设计元素。"
+    },
+    "project04": {
+        "title": "Sergek 智慧城市",
+        "category": "动态设计",
+        "description": "为 Sergek 智慧城市业务制作的 3D 动态设计，通过动画、抽象视觉与品牌化场景，清晰呈现数字基础设施。"
+    },
+    "project05": {
+        "title": "Hyundai Mufasa",
+        "category": "商业项目",
+        "description": "以城市环境中的 Hyundai Mufasa 为主角的商业 3D 动画，重点呈现车辆动画、场景氛围与精细合成。"
+    },
+    "project06": {
+        "title": "动态设计作品集锦",
+        "category": "动态设计",
+        "description": "精选商业项目与个人实验作品，涵盖动画、合成、文字设计与 3D 创作。"
+    },
+    "still01": {
+        "title": "Sergek 巡逻系统 — 3D 可视化",
+        "category": "平面作品",
+        "description": "呈现 Sergek 巡逻系统概念的一组 3D 静帧作品，通过风格化场景与科技感构图，清晰传达项目内容。"
+    },
+    "still02": {
+        "title": "Sergek 大数据 — 3D 可视化",
+        "category": "平面作品",
+        "description": "为 Sergek Group 制作的系列 3D 视觉作品，将复杂的大数据与城市科技概念转化为易于理解的画面，结合简约场景、数据抽象元素与品牌视觉语言。"
+    },
+    "still03": {
+        "title": "数字化社区警务 — 3D 可视化",
+        "category": "平面作品",
+        "description": "为 Digital District Police 项目制作的 3D 可视化，通过风格化场景、角色与科技感构图，将数字公共安全系统转化为直观的视觉叙事。"
+    },
+    "still04": {
+        "title": "真实失业率研究演示文稿",
+        "category": "平面作品",
+        "description": "为 KPMG 哈萨克斯坦关于真实失业率的研究设计的演示文稿。通过精细的文字排版、数据布局与克制的企业视觉，让复杂的分析内容更易阅读。"
+    },
+    "still05": {
+        "title": "KPMG 成功案例演示文稿",
+        "category": "平面作品",
+        "description": "为 KPMG 咨询成功案例设计的企业演示文稿，以清晰的视觉层级梳理业务内容，打造结构明确、符合品牌风格的专业呈现。"
+    },
+    "still06": {
+        "title": "SilkPay",
+        "category": "移动应用 UI 设计",
+        "description": "使用 Figma 为 SilkPay 设计的移动应用界面，展示应用页面、视觉风格与界面布局。"
+    },
+    "model-golden-warrior": {
+        "title": "金人纪念碑"
+    },
+    "model-kazakhstan-map": {
+        "title": "哈萨克斯坦地图"
+    },
+    "model-astana-city": {
+        "title": "阿斯塔纳城市模型"
+    },
+    "model-desertcross": {
+        "title": "Desertcross 多用途车"
+    }
+};
+  Object.entries(chineseProjects).forEach(([id, translation]) => {
+    projectTranslations[id] = {...projectTranslations[id], zh: translation};
+  });
+
   const generic3d = {
+    zh: '交互式 3D 模型。',
     kz: 'Интерактивті 3D модель.',
     en: 'Interactive 3D model.',
     ru: 'Интерактивная 3D-модель.'
   };
   const generic3dCharacter = {
+    zh: '交互式 3D 角色模型。',
     kz: 'Интерактивті 3D кейіпкер моделі.',
     en: 'Interactive 3D character model.',
     ru: 'Интерактивная 3D-модель персонажа.'
   };
 
+  function normalizeLanguage(value) {
+    const code = String(value || '').toLowerCase();
+    if (['cn', 'zh-cn', 'zh-hans'].includes(code)) return 'zh';
+    if (code === 'kk') return 'kz';
+    return code;
+  }
+
   let language = (() => {
+    const requested = normalizeLanguage(new URLSearchParams(window.location.search).get('lang'));
+    if (supported.includes(requested)) return requested;
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = normalizeLanguage(localStorage.getItem(STORAGE_KEY));
       return supported.includes(saved) ? saved : 'en';
     } catch { return 'en'; }
   })();
@@ -147,7 +306,6 @@
 
   function projectField(project, field) {
     if (!project) return '';
-    if (field === 'title') return project.title ?? '';
     const translation = language === 'en' ? undefined : projectTranslations[project.id]?.[language]?.[field];
     if (translation !== undefined) return translation;
     if (project.sketchfab && field === 'description') {
@@ -159,6 +317,7 @@
   }
 
   function count(kind, amount) {
+    if (language === 'zh') return `${amount} ${kind === 'models' ? '个模型' : '个项目'}`;
     if (kind === 'models') {
       if (language === 'kz') return `${amount} модель`;
       if (language === 'ru') return `${amount} моделей`;
@@ -173,7 +332,8 @@
     root.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t(node.dataset.i18n); });
     root.querySelectorAll('[data-i18n-aria-label]').forEach(node => { node.setAttribute('aria-label', t(node.dataset.i18nAriaLabel)); });
     root.querySelectorAll('[data-i18n-value]').forEach(node => { node.value = t(node.dataset.i18nValue); });
-    document.documentElement.lang = language === 'kz' ? 'kk' : language;
+    document.documentElement.lang = language === 'kz' ? 'kk' : language === 'zh' ? 'zh-CN' : language;
+    document.title = t('pageTitle');
     root.querySelectorAll('[data-lang]').forEach(button => {
       const active = button.dataset.lang === language;
       button.classList.toggle('active', active);
@@ -182,9 +342,15 @@
   }
 
   function setLanguage(next) {
+    next = normalizeLanguage(next);
     if (!supported.includes(next)) return;
     language = next;
     try { localStorage.setItem(STORAGE_KEY, language); } catch {}
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('lang', language);
+      window.history.replaceState(window.history.state, '', url);
+    } catch {}
     applyStatic();
     document.dispatchEvent(new CustomEvent('portfolio:languagechange', {detail: {language}}));
   }
